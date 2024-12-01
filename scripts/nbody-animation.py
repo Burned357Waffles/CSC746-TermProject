@@ -8,7 +8,11 @@ from matplotlib.animation import FuncAnimation
 filename = '../data/positions.csv'
 df = pd.read_csv(filename)
 
-# Extract x, y, z columns
+# Debugging: Print the DataFrame and its length
+print(df)
+print(len(df))
+
+# Assuming df is your DataFrame
 b = df['body_num']
 x = df['x']
 y = df['y']
@@ -20,7 +24,7 @@ unique_bodies = b.unique()
 # Create a colormap
 colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
 
-fig = plt.figure(figsize=(20, 10))
+fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 # Initialize the plot
@@ -41,13 +45,11 @@ def init():
     return scatters + lines
 
 def update(frame):
-    print(f"Updating frame {frame}")
     for i, body in enumerate(unique_bodies):
         body_mask = (b == body)
-        print(f"Body {body}: {sum(body_mask)} points")
-        scatters[i]._offsets3d = (x[body_mask][:frame].values, y[body_mask][:frame].values, z[body_mask][:frame].values)
-        lines[i].set_data(x[body_mask][:frame].values, y[body_mask][:frame].values)
-        lines[i].set_3d_properties(z[body_mask][:frame].values)
+        scatters[i]._offsets3d = (x[body_mask][:frame], y[body_mask][:frame], z[body_mask][:frame])
+        lines[i].set_data(x[body_mask][:frame], y[body_mask][:frame])
+        lines[i].set_3d_properties(z[body_mask][:frame])
     return scatters + lines
 
 ani = FuncAnimation(fig, update, frames=len(df), init_func=init, blit=True)

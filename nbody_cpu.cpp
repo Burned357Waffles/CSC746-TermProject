@@ -33,6 +33,8 @@ char output_fname[] = "../data/positions.csv";
 
 #define G 6.67430e-11
 #define SOLAR_MASS 1.989e30
+#define ASTEROID_MASS 1.0e12
+#define AU 1.496e11
 
 
 std::vector<float> 
@@ -61,8 +63,19 @@ compute_forces(std::vector<Body>* bodies, Body i, int dimensions)
 
       for (int idx = 0; idx < dimensions; idx++)
       {
-         total_force.push_back((G * i.mass * bodies->at(j).mass * dx[idx]) / (r_norm * r_norm * r_norm));
+         float f = (G * i.mass * bodies->at(j).mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         total_force[idx] = f;
+
+         std::cout << "dx: " << dx[0] << " " << dx[1] << " " << dx[2] << std::endl;
+         std::cout << "r_norm: " << r_norm << std::endl;
+         std::cout << "i.mass: " << i.mass << std::endl;
+         std::cout << "j.mass: " << bodies->at(j).mass << std::endl;
+         std::cout << "G: " << G << std::endl;
+         std::cout << "f: " << f << std::endl;
+         std::cout << std::endl;
       }
+
+      std::cout << "Force: " << total_force[0] << " " << total_force[1] << " " << total_force[2] << std::endl;
    }
 
    return total_force;
@@ -112,9 +125,9 @@ init_random_bodies(int dimensions, int N)
    std::vector<Body> bodies(N);
    std::random_device rd;
    std::mt19937 gen(rd());
-   std::uniform_real_distribution<float> mass_dist(1.0e-6, SOLAR_MASS);
-   std::uniform_real_distribution<float> velocity_dist(-1.0, 1.0);
-   std::uniform_real_distribution<float> position_dist(-1.0, 1.0);
+   std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, SOLAR_MASS);
+   std::uniform_real_distribution<float> velocity_dist(-30.0e3, 30.0e3); // Velocity in m/s
+   std::uniform_real_distribution<float> position_dist(-AU/4, AU/4);
 
    for(int i = 0; i < N; i++)
    {
@@ -130,6 +143,14 @@ init_random_bodies(int dimensions, int N)
       }
       bodies[i] = body;
    }
+
+   bodies[0].mass = SOLAR_MASS;
+   bodies[0].velocity = {0.0, 0.0, 0.0};
+   bodies[0].position = {0.0, 0.0, 0.0};
+
+   bodies[1].mass = SOLAR_MASS;
+   bodies[1].velocity = {0.0, 0.0, 0.0};
+   bodies[1].position = {AU/4, AU/2, AU/4};
 
    return bodies;
 }
@@ -183,7 +204,7 @@ main (int ac, char *av[])
    int dimensions = 3;
    int N = 15;
    int timestep = 60*60;
-   int final_time = timestep * 24;
+   int final_time = timestep * 3;
    std::vector<Body> bodies = init_random_bodies(dimensions, N);
    
 
