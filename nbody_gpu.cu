@@ -1,8 +1,10 @@
 //
 // (C) 2021, E. Wes Bethel
-// sobel_gpu.cpp
-// usage:
-//      sobel_gpu [no args, all is hard coded]
+// Created code harness for the sobel filter
+// (C) 2024, Brandon Watanabe
+// Modified code to be nbody simulation
+// 
+// Usage:
 //
 
 #include <iostream>
@@ -12,7 +14,8 @@
 #include <string.h>
 #include <math.h>
 
-// see https://en.wikipedia.org/wiki/Sobel_operator
+// for an explanation of the formulas see:
+// https://www.cs.usask.ca/~spiteri/CMPT851/notes/nBody.pdf
 
 
 // easy-to-find and change variables for the input.
@@ -27,7 +30,7 @@
 // this one is a 4x augmentation of the laughing zebra
 static char input_fname[] = "../data/zebra-gray-int8-4x";
 static int data_dims[2] = {7112, 5146}; // width=ncols, height=nrows
-char output_fname[] = "../data/processed-raw-int8-4x-cpu.dat";
+/char output_fname[] = "../data/processed-raw-int8-4x-cpu.dat";
 
 // see https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 // macro to check for cuda errors. basic idea: wrap this macro around every cuda call
