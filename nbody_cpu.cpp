@@ -42,13 +42,13 @@ char output_fname[] = "../data/positions.csv";
 
 
 std::vector<float> 
-compute_forces(std::vector<Body>* bodies, Body i, int N, int dimensions)
+compute_forces(std::vector<Body>& bodies, Body i, int N, int dimensions)
 {
    std::vector<float> total_force(dimensions, 0.0);
 
    for(int j = 0; j < N; j++)
    {
-      if(i == (*bodies)[j])
+      if(i == bodies[j])
          continue;
 
       std::vector<float> dx(dimensions, 0.0);
@@ -57,7 +57,7 @@ compute_forces(std::vector<Body>* bodies, Body i, int N, int dimensions)
 
       for (int idx = 0; idx < dimensions; idx++)
       {
-         dx[idx] = bodies->at(j).position[idx] - i.position[idx];
+         dx[idx] = bodies[j].position[idx] - i.position[idx];
          r += dx[idx] * dx[idx];
       }
 
@@ -67,7 +67,7 @@ compute_forces(std::vector<Body>* bodies, Body i, int N, int dimensions)
 
       for (int idx = 0; idx < dimensions; idx++)
       {
-         float f = (G * i.mass * bodies->at(j).mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         float f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] = f;
       }
    }
@@ -92,21 +92,21 @@ update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, i
 }
 
 void 
-do_nBody_calculation(std::vector<Body>* bodies, int N, int dimensions, int timestep, int final_time)
+do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int timestep, int final_time)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
       std::vector<float> forces(N * dimensions, 0.0);
       for(int i = 0; i < N; i++)
       {
-         std::vector<float> force = compute_forces(bodies, bodies->at(i), N, dimensions);
+         std::vector<float> force = compute_forces(bodies, bodies[i], N, dimensions);
          for (int idx = 0; idx < dimensions; idx++)
          {
             forces[i * dimensions + idx] = force[idx];
          }
       }
 
-      update_bodies(*bodies, forces, timestep, N, dimensions);
+      update_bodies(bodies, forces, timestep, N, dimensions);
    }
 }
 
@@ -248,7 +248,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(&bodies, N, dimensions, timestep, final_time);
+   do_nBody_calculation(bodies, N, dimensions, timestep, final_time);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
