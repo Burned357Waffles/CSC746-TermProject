@@ -20,14 +20,16 @@
 struct Body
 {
    float mass;
-   std::vector<float> velocity;
-   std::vector<float> position;
+   float velocity[3];
+   float position[3];
    std::vector<float> velocity_history;
    std::vector<float> position_history;
 
    bool operator==(const Body& other) const
    {
-      return mass == other.mass && velocity == other.velocity && position == other.position;
+      return mass == other.mass && 
+             std::equal(std::begin(velocity), std::end(velocity), std::begin(other.velocity)) &&
+             std::equal(std::begin(position), std::end(position), std::begin(other.position));
    }
 };
 
@@ -55,7 +57,7 @@ compute_forces(std::vector<Body>* bodies, Body i, int dimensions)
 
       for (int idx = 0; idx < dimensions; idx++)
       {
-         dx[idx] = bodies->at(j).position[bodies->at(j).position.size() - dimensions + idx] - i.position[i.position.size() - dimensions + idx];
+         dx[idx] = bodies->at(j).position[idx] - i.position[idx];
          r += dx[idx] * dx[idx];
       }
 
@@ -137,8 +139,8 @@ init_random_bodies(int dimensions, int N)
    {
       Body body;
       body.mass = mass_dist(gen);
-      body.velocity.resize(dimensions);
-      body.position.resize(dimensions); // Resize the position vector
+      //body.velocity.resize(dimensions);
+      //body.position.resize(dimensions); // Resize the position vector
 
       for (int j = 0; j < dimensions; j++)
       {
@@ -149,13 +151,20 @@ init_random_bodies(int dimensions, int N)
    }
 
    bodies[0].mass = SOLAR_MASS;
-   bodies[0].velocity = {0, 0, 0};
-   bodies[0].position = {0, 0, 0};
+   bodies[0].velocity[0] = 0;
+   bodies[0].velocity[1] = 0;
+   bodies[0].velocity[2] = 0;
+   bodies[0].position[0] = 0;
+   bodies[0].position[1] = 0;
+   bodies[0].position[2] = 0;
 
-   
    bodies[1].mass = ASTEROID_MASS;
-   bodies[1].velocity = {22365.5, 24955.3, 28634.1};
-   bodies[1].position = {-1.77419e+09, 1.52822e+10, -2.62286e+10};
+   bodies[1].velocity[0] = 22365.5;
+   bodies[1].velocity[1] = 24955.3;
+   bodies[1].velocity[2] = 28634.1;
+   bodies[1].position[0] = -1.77419e+09;
+   bodies[1].position[1] = 1.52822e+10;
+   bodies[1].position[2] = -2.62286e+10;
    
 
    std::cout << "Bodies initialized" << std::endl;
