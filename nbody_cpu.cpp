@@ -102,7 +102,6 @@ do_nBody_calculation(std::vector<Body>* bodies, int dimensions, int timestep, in
          {
             forces[i * dimensions + idx] = force[idx];
          }
-         std::cout << std::endl;
       }
 
       update_bodies(*bodies, forces, timestep, dimensions);
@@ -114,12 +113,22 @@ do_nBody_calculation(std::vector<Body>* bodies, int dimensions, int timestep, in
 // mass is in the range 1.0e-6 to SOLAR_MASS
 // velocity is in the range -1.0 to 1.0
 // position is in the range -1.0 to 1.0
+// 
+// To get an orbit:
+// 1. Set the mass of the first body to SOLAR_MASS
+// 2. Set the velocity of the first body to 0
+// 3. Set the position of the first body to 0
+// 4. Body 1 mass: 1e+12
+// 5. Body 1 velocity: 22365.5, 24955.3, 28634.1
+// 6/ Body 1 position: -1.77419e+09, 1.52822e+10, -2.62286e+10
+
 std::vector<Body>
 init_random_bodies(int dimensions, int N)
 {
    std::vector<Body> bodies(N);
    std::random_device rd;
    std::mt19937 gen(rd());
+   //std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, ASTEROID_MASS);
    std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, SOLAR_MASS / 2);
    std::uniform_real_distribution<float> velocity_dist(-30.0e3, 30.0e3); // Velocity in m/s
    std::uniform_real_distribution<float> position_dist(-AU/4, AU/4);
@@ -143,9 +152,17 @@ init_random_bodies(int dimensions, int N)
    bodies[0].velocity = {0, 0, 0};
    bodies[0].position = {0, 0, 0};
 
-   //bodies[1].mass = ASTEROID_MASS;
-   //bodies[1].velocity = {0, 0, 0};
-   //bodies[1].position = {AU, AU, AU};
+   /*
+   bodies[1].mass = ASTEROID_MASS;
+   bodies[1].velocity = {22365.5, 24955.3, 28634.1};
+   bodies[1].position = {-1.77419e+09, 1.52822e+10, -2.62286e+10};
+   */
+
+   std::cout << "Bodies initialized" << std::endl;
+   std::cout << "Body 1 mass: " << bodies[1].mass << std::endl;
+   std::cout << "Body 1 velocity: " << bodies[1].velocity[0] << ", " << bodies[1].velocity[1] << ", " << bodies[1].velocity[2] << std::endl;
+   std::cout << "Body 1 position: " << bodies[1].position[0] << ", " << bodies[1].position[1] << ", " << bodies[1].position[2] << std::endl;
+
 
    return bodies;
 }
@@ -205,7 +222,7 @@ main (int ac, char *av[])
       }
    }
    int dimensions = 3;
-   int N = 15;
+   int N = 10;
    int timestep = 60 * 60;
    int final_time = timestep * 24 * 365;
    std::vector<Body> bodies = init_random_bodies(dimensions, N);
