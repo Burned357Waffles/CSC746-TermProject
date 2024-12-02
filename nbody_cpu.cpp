@@ -37,6 +37,14 @@ char output_fname[] = "../data/positions.csv";
 
 #define G 6.67430e-11
 #define SOLAR_MASS 1.989e30
+#define MERCURY_MASS 3.285e23
+#define VENUS_MASS 4.867e24
+#define EARTH_MASS 5.972e24
+#define MARS_MASS 6.390e23
+#define JUPITER_MASS 1.898e27
+#define SATURN_MASS 5.683e26
+#define URANUS_MASS 8.681e25
+#define NEPTUNE_MASS 1.024e26
 #define ASTEROID_MASS 1.0e12
 #define AU 1.496e11
 
@@ -68,7 +76,7 @@ compute_forces(std::vector<Body>& bodies, Body i, int N, int dimensions)
       for (int idx = 0; idx < dimensions; idx++)
       {
          float f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
-         total_force[idx] = f;
+         total_force[idx] += f;
       }
    }
 
@@ -92,7 +100,7 @@ update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, i
 }
 
 void 
-do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int timestep, int final_time)
+do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int timestep, unsigned int final_time)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
@@ -133,9 +141,9 @@ init_random_bodies(int dimensions, int N)
    std::random_device rd;
    std::mt19937 gen(rd());
    //std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, ASTEROID_MASS);
-   std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, SOLAR_MASS / 2);
-   std::uniform_real_distribution<float> velocity_dist(-30.0e3, 30.0e3); // Velocity in m/s
-   std::uniform_real_distribution<float> position_dist(-AU/4, AU/4);
+   std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, JUPITER_MASS);
+   std::uniform_real_distribution<float> velocity_dist(-50.0e3, 50.0e3); // Velocity in m/s
+   std::uniform_real_distribution<float> position_dist(-AU, AU);
 
    for(int i = 0; i < N; i++)
    {
@@ -152,6 +160,23 @@ init_random_bodies(int dimensions, int N)
       bodies[i] = body;
    }
 
+   // print all the bodies
+   /*
+   for (int i = 0; i < N; i++)
+   {
+      std::cout << "Body " << i << " mass: " << bodies[i].mass << std::endl;
+      std::cout << "Body " << i << " velocity: " << bodies[i].velocity[0] << ", " << bodies[i].velocity[1] << ", " << bodies[i].velocity[2] << std::endl;
+      std::cout << "Body " << i << " position: " << bodies[i].position[0] / AU << ", " << bodies[i].position[1] / AU  << ", " << bodies[i].position[2] / AU  << std::endl;
+   }
+   */
+
+   return bodies;
+}
+
+std::vector<Body>
+init_solar_system(int dimensions)
+{
+   std::vector<Body> bodies(9);
    bodies[0].mass = SOLAR_MASS;
    bodies[0].velocity[0] = 0;
    bodies[0].velocity[1] = 0;
@@ -159,21 +184,70 @@ init_random_bodies(int dimensions, int N)
    bodies[0].position[0] = 0;
    bodies[0].position[1] = 0;
    bodies[0].position[2] = 0;
-
-   bodies[1].mass = ASTEROID_MASS;
-   bodies[1].velocity[0] = 22365.5;
-   bodies[1].velocity[1] = 24955.3;
-   bodies[1].velocity[2] = 28634.1;
-   bodies[1].position[0] = -1.77419e+09;
-   bodies[1].position[1] = 1.52822e+10;
-   bodies[1].position[2] = -2.62286e+10;
+ 
+   bodies[1].mass = MERCURY_MASS;
+   bodies[1].velocity[0] = 0;
+   bodies[1].velocity[1] = 47.87e3;
+   bodies[1].velocity[2] = 0;
+   bodies[1].position[0] = 0.39 * AU;
+   bodies[1].position[1] = 0;
+   bodies[1].position[2] = 0;
    
+   bodies[2].mass = VENUS_MASS;
+   bodies[2].velocity[0] = 0;
+   bodies[2].velocity[1] = 35.02e3;
+   bodies[2].velocity[2] = 0;
+   bodies[2].position[0] = 0.72 * AU;
+   bodies[2].position[1] = 0;
+   bodies[2].position[2] = 0;
 
-   std::cout << "Bodies initialized" << std::endl;
-   std::cout << "Body 1 mass: " << bodies[1].mass << std::endl;
-   std::cout << "Body 1 velocity: " << bodies[1].velocity[0] << ", " << bodies[1].velocity[1] << ", " << bodies[1].velocity[2] << std::endl;
-   std::cout << "Body 1 position: " << bodies[1].position[0] << ", " << bodies[1].position[1] << ", " << bodies[1].position[2] << std::endl;
+   bodies[3].mass = EARTH_MASS;
+   bodies[3].velocity[0] = 0;
+   bodies[3].velocity[1] = 29.78e3;
+   bodies[3].velocity[2] = 0;
+   bodies[3].position[0] = AU;
+   bodies[3].position[1] = 0;
+   bodies[3].position[2] = 0;
 
+   bodies[4].mass = MARS_MASS;
+   bodies[4].velocity[0] = 0;
+   bodies[4].velocity[1] = 24.07e3;
+   bodies[4].velocity[2] = 0;
+   bodies[4].position[0] = 1.52 * AU;
+   bodies[4].position[1] = 0;
+   bodies[4].position[2] = 0;
+
+   bodies[5].mass = JUPITER_MASS;
+   bodies[5].velocity[0] = 0;
+   bodies[5].velocity[1] = 13.07e3;
+   bodies[5].velocity[2] = 0;
+   bodies[5].position[0] = 5.20 * AU;
+   bodies[5].position[1] = 0;
+   bodies[5].position[2] = 0;
+
+   bodies[6].mass = SATURN_MASS;
+   bodies[6].velocity[0] = 0;
+   bodies[6].velocity[1] = 9.69e3;
+   bodies[6].velocity[2] = 0;
+   bodies[6].position[0] = 9.58 * AU;
+   bodies[6].position[1] = 0;
+   bodies[6].position[2] = 0;
+
+   bodies[7].mass = URANUS_MASS;
+   bodies[7].velocity[0] = 0;
+   bodies[7].velocity[1] = 6.81e3;
+   bodies[7].velocity[2] = 0;
+   bodies[7].position[0] = 19.22 * AU;
+   bodies[7].position[1] = 0;
+   bodies[7].position[2] = 0;
+
+   bodies[8].mass = NEPTUNE_MASS;
+   bodies[8].velocity[0] = 0;
+   bodies[8].velocity[1] = 5.43e3;
+   bodies[8].velocity[2] = 0;
+   bodies[8].position[0] = 30.05 * AU;
+   bodies[8].position[1] = 0;
+   bodies[8].position[2] = 0;
 
    return bodies;
 }
@@ -215,6 +289,8 @@ write_data_to_file(const std::vector<Body>& bodies, int N)
    }
 
    fclose(fp);
+
+   std::cout << "Data written to " << output_fname << std::endl;
 }
 
 int
@@ -239,11 +315,23 @@ main (int ac, char *av[])
    }
 
    int N = std::stoi(av[1]);
+
    int dimensions = 3;
    int timestep = 60 * 60;
-   int final_time = timestep * 24 * 365;
-   std::vector<Body> bodies = init_random_bodies(dimensions, N);
+   unsigned int final_time = timestep * 24 * 365; 
+   std::vector<Body> bodies;
+
+   if (N == -1)
+   {
+      N = 9;
+      bodies = init_solar_system(dimensions);
+   }
+   else 
+   {
+      bodies = init_random_bodies(dimensions, N);
+   }
    
+   std::cout << "Number of bodies: " << N << std::endl;
 
    // do the processing =======================
    std::cout << "Starting nbody calculation" << std::endl;
@@ -258,9 +346,6 @@ main (int ac, char *av[])
    std::cout << " Elapsed time is : " << elapsed.count() << " " << std::endl;
 
    write_data_to_file(bodies, N);
-
-   
-   
 }
 
 // eof
