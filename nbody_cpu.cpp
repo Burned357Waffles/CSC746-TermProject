@@ -152,11 +152,11 @@ init_random_bodies(int dimensions, int N)
    bodies[0].velocity = {0, 0, 0};
    bodies[0].position = {0, 0, 0};
 
-   /*
+   
    bodies[1].mass = ASTEROID_MASS;
    bodies[1].velocity = {22365.5, 24955.3, 28634.1};
    bodies[1].position = {-1.77419e+09, 1.52822e+10, -2.62286e+10};
-   */
+   
 
    std::cout << "Bodies initialized" << std::endl;
    std::cout << "Body 1 mass: " << bodies[1].mass << std::endl;
@@ -209,6 +209,11 @@ write_data_to_file(const std::vector<Body>& bodies)
 int
 main (int ac, char *av[])
 {
+   if (ac < 2) {
+      std::cerr << "Usage: " << av[0] << " <number_of_bodies>" << std::endl;
+      return 1;
+   }
+
    #pragma omp parallel
    {
       // ID of the thread in the current team
@@ -221,8 +226,9 @@ main (int ac, char *av[])
          std::cout << "Hello world, I'm thread " << thread_id << " out of " << nthreads << " total threads. " << std::endl; 
       }
    }
+
+   int N = std::stoi(av[1]);
    int dimensions = 3;
-   int N = 10;
    int timestep = 60 * 60;
    int final_time = timestep * 24 * 365;
    std::vector<Body> bodies = init_random_bodies(dimensions, N);
