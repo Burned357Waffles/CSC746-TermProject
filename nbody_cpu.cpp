@@ -42,11 +42,11 @@ char output_fname[] = "../data/positions.csv";
 
 
 std::vector<float> 
-compute_forces(std::vector<Body>* bodies, Body i, int dimensions)
+compute_forces(std::vector<Body>* bodies, Body i, int N, int dimensions)
 {
    std::vector<float> total_force(dimensions, 0.0);
 
-   for(int j = 0; j < bodies->size(); j++)
+   for(int j = 0; j < N; j++)
    {
       if(i == (*bodies)[j])
          continue;
@@ -76,9 +76,9 @@ compute_forces(std::vector<Body>* bodies, Body i, int dimensions)
 }
 
 void 
-update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, int dimensions)
+update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, int N, int dimensions)
 {
-   for (int i = 0; i < bodies.size(); i++)
+   for (int i = 0; i < N; i++)
    {
       for (int idx = 0; idx < dimensions; idx++)
       {
@@ -92,21 +92,21 @@ update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, i
 }
 
 void 
-do_nBody_calculation(std::vector<Body>* bodies, int dimensions, int timestep, int final_time)
+do_nBody_calculation(std::vector<Body>* bodies, int N, int dimensions, int timestep, int final_time)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
-      std::vector<float> forces(bodies->size() * dimensions, 0.0);
-      for(int i = 0; i < bodies->size(); i++)
+      std::vector<float> forces(N * dimensions, 0.0);
+      for(int i = 0; i < N; i++)
       {
-         std::vector<float> force = compute_forces(bodies, bodies->at(i), dimensions);
+         std::vector<float> force = compute_forces(bodies, bodies->at(i), N, dimensions);
          for (int idx = 0; idx < dimensions; idx++)
          {
             forces[i * dimensions + idx] = force[idx];
          }
       }
 
-      update_bodies(*bodies, forces, timestep, dimensions);
+      update_bodies(*bodies, forces, timestep, N, dimensions);
    }
 }
 
@@ -178,7 +178,7 @@ init_random_bodies(int dimensions, int N)
 
 
 void 
-write_data_to_file(const std::vector<Body>& bodies) 
+write_data_to_file(const std::vector<Body>& bodies, int N) 
 {
    FILE *fp = fopen(output_fname, "w");
    if (fp == NULL)
@@ -190,7 +190,7 @@ write_data_to_file(const std::vector<Body>& bodies)
    // Print header
    fprintf(fp, "body_num,m,vx,vy,vz,x,y,z\n");
 
-   for (int i = 0; i < bodies.size(); i++)
+   for (int i = 0; i < N; i++)
    {
       const std::vector<float>& pos = bodies[i].position_history;
       const std::vector<float>& vel = bodies[i].velocity_history;
@@ -248,14 +248,14 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(&bodies, dimensions, timestep, final_time);
+   do_nBody_calculation(&bodies, N, dimensions, timestep, final_time);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
    std::chrono::duration<double> elapsed = end_time - start_time;
    std::cout << " Elapsed time is : " << elapsed.count() << " " << std::endl;
 
-   write_data_to_file(bodies);
+   write_data_to_file(bodies, N);
 
    
    
