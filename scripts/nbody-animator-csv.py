@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+colorful = True
 
 filename = 'data/positions.csv'
 df = pd.read_csv(filename, skiprows=1, header=None, names=['body_num', 'm', 'vx', 'vy', 'vz', 'x', 'y', 'z'])
@@ -37,23 +40,14 @@ ax = plt.axes(projection='3d')
 unique_bodies = b.unique()
 colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
 
-# Plotting the first and last positions with dots and keeping the line
-for i, body in enumerate(unique_bodies):
-    body_mask = (b == body)
-    x_body = x[body_mask]
-    y_body = y[body_mask]
-    z_body = z[body_mask]
-    m_body = m[body_mask]
-
-    # Plot the first and last positions with dots
-    ax.scatter(x_body.iloc[[0, -1]], y_body.iloc[[0, -1]], z_body.iloc[[0, -1]], s=m_body.iloc[[0, -1]],
-               color=colors[i])
-
-    # Plot the line for the entire trajectory
-    ax.plot3D(x_body, y_body, z_body, color=colors[i])
-
-    # Plot points at every position along the trajectory
-    #ax.scatter(x_body, y_body, z_body, s=m_body, color=colors[i], alpha=0.6)
+# Initialize scatter and line objects
+scatters = []
+lines = []
+for body in unique_bodies:
+    scatter = ax.scatter([], [], [], s=[], color=colors[body])
+    line, = ax.plot3D([], [], [], color=colors[body])
+    scatters.append(scatter)
+    lines.append(line)
 
 max_val = max(x.max(), y.max(), z.max())
 min_val = min(x.min(), y.min(), z.min())
@@ -67,4 +61,23 @@ ax.set_ylabel('Y axis')
 ax.set_zlabel('Z axis')
 
 ax.view_init(elev=10., azim=45)
+
+def update(frame):
+    for i, body in enumerate(unique_bodies):
+        body_mask = (b == body)
+        x_body = x[body_mask]
+        y_body = y[body_mask]
+        z_body = z[body_mask]
+        m_body = m[body_mask]
+
+        scatters[i]._offsets3d = (x_body.iloc[frame:frame+1], y_body.iloc[frame:frame+1], z_body.iloc[frame:frame+1])
+        scatters[i].set_sizes([m_body.iloc[frame]])
+        lines[i].set_data(x_body.iloc[:frame+1], y_body.iloc[:frame+1])
+        lines[i].set_3d_properties(z_body.iloc[:frame+1])
+
+    return scatters + lines
+
+frames = len(df) // len(unique_bodies)
+ani = FuncAnimation(fig, update, frames=frames, interval=50, blit=False)
+
 plt.show()

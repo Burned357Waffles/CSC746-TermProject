@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+colorful = True
+
 filename = 'data/positions.csv'
 df = pd.read_csv(filename, skiprows=1, header=None, names=['body_num', 'm', 'vx', 'vy', 'vz', 'x', 'y', 'z'])
 
@@ -38,6 +40,8 @@ ax = plt.axes(projection='3d')
 max_mass_index = df['m'].idxmax()
 max_mass_body = df.loc[max_mass_index, 'body_num']
 
+unique_bodies = b.unique()
+colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
 # Plotting the first and last positions with dots and keeping the line
 for body in b.unique():
     body_mask = (b == body)
@@ -46,10 +50,13 @@ for body in b.unique():
     z_body = z[body_mask]
     m_body = m[body_mask]
 
-    if body == max_mass_body:
-        color = 'red'
+    if colorful:
+        color = colors[body]
     else:
-        color = 'blue'
+        if body == max_mass_body:
+            color = 'red'
+        else:
+            color = 'blue'
 
     # Plot the first and last positions with dots
     ax.scatter(x_body.iloc[[0, -1]], y_body.iloc[[0, -1]], z_body.iloc[[0, -1]], s=m_body.iloc[[0, -1]], color=color)
