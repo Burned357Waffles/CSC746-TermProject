@@ -27,12 +27,17 @@ colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
+# Set the limits of the axes
+ax.set_xlim([df['x'].min(), df['x'].max()])
+ax.set_ylim([df['y'].min(), df['y'].max()])
+ax.set_zlim([df['z'].min(), df['z'].max()])
+
 # Initialize the plot
 scatters = []
 lines = []
 for i, body in enumerate(unique_bodies):
     body_mask = (b == body)
-    scatter = ax.scatter([], [], [], s=5, color=colors[i])
+    scatter = ax.scatter([], [], [], s=5, color=colors[i], marker='x')
     line, = ax.plot3D([], [], [], color=colors[i])
     scatters.append(scatter)
     lines.append(line)
@@ -47,12 +52,12 @@ def init():
 def update(frame):
     for i, body in enumerate(unique_bodies):
         body_mask = (b == body)
-        scatters[i]._offsets3d = (x[body_mask][:frame], y[body_mask][:frame], z[body_mask][:frame])
-        lines[i].set_data(x[body_mask][:frame], y[body_mask][:frame])
-        lines[i].set_3d_properties(z[body_mask][:frame])
+        scatters[i]._offsets3d = (x[body_mask][:frame+1], y[body_mask][:frame+1], z[body_mask][:frame+1])
+        lines[i].set_data(x[body_mask][:frame+1], y[body_mask][:frame+1])
+        lines[i].set_3d_properties(z[body_mask][:frame+1])
     return scatters + lines
 
-ani = FuncAnimation(fig, update, frames=len(df), init_func=init, blit=True)
+ani = FuncAnimation(fig, update, frames=len(df), init_func=init, blit=True, interval=10)
 
 ax.view_init(elev=10., azim=45)
 plt.show()

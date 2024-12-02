@@ -65,17 +65,7 @@ compute_forces(std::vector<Body>* bodies, Body i, int dimensions)
       {
          float f = (G * i.mass * bodies->at(j).mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] = f;
-
-         std::cout << "dx: " << dx[0] << " " << dx[1] << " " << dx[2] << std::endl;
-         std::cout << "r_norm: " << r_norm << std::endl;
-         std::cout << "i.mass: " << i.mass << std::endl;
-         std::cout << "j.mass: " << bodies->at(j).mass << std::endl;
-         std::cout << "G: " << G << std::endl;
-         std::cout << "f: " << f << std::endl;
-         std::cout << std::endl;
       }
-
-      std::cout << "Force: " << total_force[0] << " " << total_force[1] << " " << total_force[2] << std::endl;
    }
 
    return total_force;
@@ -148,7 +138,7 @@ init_random_bodies(int dimensions, int N)
    bodies[0].velocity = {0.0, 0.0, 0.0};
    bodies[0].position = {0.0, 0.0, 0.0};
 
-   bodies[1].mass = SOLAR_MASS;
+   bodies[1].mass = ASTEROID_MASS;
    bodies[1].velocity = {0.0, 0.0, 0.0};
    bodies[1].position = {AU/4, AU/2, AU/4};
 
@@ -202,9 +192,9 @@ main (int ac, char *av[])
       }
    }
    int dimensions = 3;
-   int N = 15;
+   int N = 17;
    int timestep = 60*60;
-   int final_time = timestep * 3;
+   int final_time = timestep * 24 * 365 * 5;
    std::vector<Body> bodies = init_random_bodies(dimensions, N);
    
 
