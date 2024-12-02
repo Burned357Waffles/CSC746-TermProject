@@ -22,6 +22,8 @@ struct Body
    float mass;
    std::vector<float> velocity;
    std::vector<float> position;
+   std::vector<float> velocity_history;
+   std::vector<float> position_history;
 
    bool operator==(const Body& other) const
    {
@@ -79,7 +81,10 @@ update_bodies(std::vector<Body>& bodies, std::vector<float>& forces, float dt, i
       for (int idx = 0; idx < dimensions; idx++)
       {
          bodies[i].velocity[idx] += forces[i * dimensions + idx] / bodies[i].mass * dt;
-         bodies[i].position.push_back(bodies[i].velocity[idx] * dt);
+         bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+
+         bodies[i].velocity_history.push_back(bodies[i].velocity[idx]);
+         bodies[i].position_history.push_back(bodies[i].position[idx]);
       }
    }
 }
@@ -115,7 +120,7 @@ init_random_bodies(int dimensions, int N)
    std::vector<Body> bodies(N);
    std::random_device rd;
    std::mt19937 gen(rd());
-   std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, SOLAR_MASS);
+   std::uniform_real_distribution<float> mass_dist(ASTEROID_MASS, SOLAR_MASS / 2);
    std::uniform_real_distribution<float> velocity_dist(-30.0e3, 30.0e3); // Velocity in m/s
    std::uniform_real_distribution<float> position_dist(-AU/4, AU/4);
 
@@ -135,19 +140,19 @@ init_random_bodies(int dimensions, int N)
    }
 
    bodies[0].mass = SOLAR_MASS;
-   bodies[0].velocity = {0.0, 0.0, 0.0};
-   bodies[0].position = {0.0, 0.0, 0.0};
+   bodies[0].velocity = {0, 0, 0};
+   bodies[0].position = {0, 0, 0};
 
-   bodies[1].mass = ASTEROID_MASS;
-   bodies[1].velocity = {0.0, 0.0, 0.0};
-   bodies[1].position = {AU/4, AU/2, AU/4};
+   //bodies[1].mass = ASTEROID_MASS;
+   //bodies[1].velocity = {0, 0, 0};
+   //bodies[1].position = {AU, AU, AU};
 
    return bodies;
 }
 
 
 void 
-save_positions(const std::vector<Body>& bodies) 
+write_data_to_file(const std::vector<Body>& bodies) 
 {
    FILE *fp = fopen(output_fname, "w");
    if (fp == NULL)
@@ -157,19 +162,27 @@ save_positions(const std::vector<Body>& bodies)
    }
 
    // Print header
-   fprintf(fp, "body_num,x,y,z\n");
+   fprintf(fp, "body_num,m,vx,vy,vz,x,y,z\n");
 
    for (int i = 0; i < bodies.size(); i++)
    {
-      const std::vector<float>& pos = bodies[i].position;
+      const std::vector<float>& pos = bodies[i].position_history;
+      const std::vector<float>& vel = bodies[i].velocity_history;
       if (pos.size() % 3 != 0) {
          std::cerr << "Error: body " << i << " does not have the correct number of position coordinates" << std::endl;
          fclose(fp);
          exit(1);
       }
 
+      if (vel.size() % 3 != 0) {
+         std::cerr << "Error: body " << i << " does not have the correct number of veelocities" << std::endl;
+         fclose(fp);
+         exit(1);
+      }
+
+
       for (int j = 0; j < pos.size(); j += 3) {
-         fprintf(fp, "%d, %f, %f, %f\n", i, pos[j], pos[j+1], pos[j+2]);
+         fprintf(fp, "%d,%f,%f,%f,%f,%f,%f,%f\n", i, bodies[i].mass, vel[j], vel[j+1], vel[j+2], pos[j], pos[j+1], pos[j+2]);
       }
    }
 
@@ -192,9 +205,9 @@ main (int ac, char *av[])
       }
    }
    int dimensions = 3;
-   int N = 17;
-   int timestep = 60*60;
-   int final_time = timestep * 24 * 365 * 5;
+   int N = 15;
+   int timestep = 60 * 60;
+   int final_time = timestep * 24 * 365;
    std::vector<Body> bodies = init_random_bodies(dimensions, N);
    
 
@@ -210,7 +223,7 @@ main (int ac, char *av[])
    std::chrono::duration<double> elapsed = end_time - start_time;
    std::cout << " Elapsed time is : " << elapsed.count() << " " << std::endl;
 
-   save_positions(bodies);
+   write_data_to_file(bodies);
 
    
    
