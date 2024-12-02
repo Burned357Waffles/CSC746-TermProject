@@ -97,6 +97,8 @@ do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int times
    for(int t = 0; t < final_time; t+=timestep)
    {
       std::vector<float> forces(N * dimensions, 0.0);
+
+      #pragma omp parallel for
       for(int i = 0; i < N; i++)
       {
          std::vector<float> force = compute_forces(bodies, bodies[i], N, dimensions);
