@@ -142,7 +142,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
       //memset(forces, 0, N * DIM * sizeof(double));
       for (int i = index; i < N; i += stride)
       { 
-         compute_forces(bodies, bodies[i], shared_forces + i * DIM, N);
+         compute_forces(bodies, bodies[i], shared_forces, N);
       }
       __syncthreads();
 
