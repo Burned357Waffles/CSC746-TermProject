@@ -331,7 +331,7 @@ main (int ac, char *av[])
    int timestep_modifier = std::stoi(av[3]);
    int final_time_modifier = std::stoi(av[4]);
 
-   int timestep = EARTH_DAY * timestep_modifier;
+   int timestep = HOUR * timestep_modifier;
    unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR) * final_time_modifier; 
 
    std::vector<Body> bodies;
