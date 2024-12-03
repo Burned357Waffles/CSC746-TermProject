@@ -91,7 +91,7 @@ compute_forces(std::vector<Body>& bodies, Body i, int N)
 }
 
 void 
-update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, const double dt, const int N)
+update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, const double dt, const int N, const bool record_histories)
 {
    //#pragma omp parallel for
    for (int i = 0; i < N; i++)
@@ -105,14 +105,17 @@ update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, cons
          //bodies[i].position_history.push_back(bodies[i].position[idx]);
       }
 
-      velocity_history[i].insert(velocity_history[i].end(), std::begin(bodies[i].velocity), std::end(bodies[i].velocity));
-      position_history[i].insert(position_history[i].end(), std::begin(bodies[i].position), std::end(bodies[i].position));
+      if (record_histories)
+      {
+         velocity_history[i].insert(velocity_history[i].end(), std::begin(bodies[i].velocity), std::end(bodies[i].velocity));
+         position_history[i].insert(position_history[i].end(), std::begin(bodies[i].position), std::end(bodies[i].position));
+      }
     
    }
 }
 
 void 
-do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned long long final_time)
+do_nBody_calculation(std::vector<Body>& bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
@@ -128,7 +131,7 @@ do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned lo
          }
       }
 
-      update_bodies(bodies, forces, timestep, N);
+      update_bodies(bodies, forces, timestep, N, record_histories);
    }
 }
 
@@ -147,7 +150,7 @@ do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned lo
 // 6/ Body 1 position: -1.77419e+09, 1.52822e+10, -2.62286e+10
 
 std::vector<Body>
-init_random_bodies(int N)
+init_random_bodies(const int N)
 {
    std::vector<Body> bodies(N);
    std::random_device rd;
@@ -245,7 +248,7 @@ init_solar_system()
 
 
 void 
-write_data_to_file(const std::vector<Body>& bodies, int N) 
+write_data_to_file(const std::vector<Body>& bodies, const int N) 
 {
    FILE *fp = fopen(output_fname, "w");
    if (fp == NULL)
@@ -286,8 +289,8 @@ write_data_to_file(const std::vector<Body>& bodies, int N)
 int
 main (int ac, char *av[])
 {
-   if (ac < 4) {
-      std::cerr << "Usage: " << av[0] << " <number_of_bodies> <timestep_modifier> <final_time_modifier>" << std::endl;
+   if (ac < 5) {
+      std::cerr << "Usage: " << av[0] << " <number_of_bodies> <record_histories> <timestep_modifier> <final_time_modifier>" << std::endl;
       return 1;
    }
 
@@ -305,8 +308,9 @@ main (int ac, char *av[])
    }
 
    int N = std::stoi(av[1]);
-   int timestep_modifier = std::stoi(av[2]);
-   int final_time_modifier = std::stoi(av[3]);
+   bool record_histories = std::stoi(av[2]);
+   int timestep_modifier = std::stoi(av[3]);
+   int final_time_modifier = std::stoi(av[4]);
 
    int timestep = EARTH_DAY * timestep_modifier;
    unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR) * final_time_modifier; 
@@ -332,14 +336,17 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(bodies, N, timestep, final_time);
+   do_nBody_calculation(bodies, N, timestep, final_time, record_histories);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
    std::chrono::duration<double> elapsed = end_time - start_time;
    std::cout << " Elapsed time is : " << elapsed.count() << " " << std::endl;
 
-   write_data_to_file(bodies, N);
+   if (record_histories)
+      write_data_to_file(bodies, N);
+   else
+      std::cout << "Histories were not recorded" << std::endl;
 }
 
 // eof
