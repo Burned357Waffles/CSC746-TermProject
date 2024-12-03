@@ -184,7 +184,7 @@ init_random_bodies(const int N)
       bodies[i] = body;
    }
 
-   
+  /*
    bodies[0].mass = SOLAR_MASS;  
    bodies[0].velocity[0] = 0;
    bodies[0].velocity[1] = 0;
@@ -200,8 +200,8 @@ init_random_bodies(const int N)
    bodies[1].position[0] = -1.77419e+09;
    bodies[1].position[1] = 1.52822e+10;
    bodies[1].position[2] = -2.62286e+10;
+   */
    
-
    return bodies;
 }
 

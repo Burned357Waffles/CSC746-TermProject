@@ -37,6 +37,6 @@ target_link_options(nbody_cpu PRIVATE -fopenmp)
 set(BENCHMARK "nbody_cpu")
 configure_file(job.in job-${BENCHMARK})
 
-#add_executable(nbody_gpu nbody_gpu.cu)
+add_executable(nbody_gpu nbody_gpu.cu)
 #generate CUDA code for an actual compute capability 7.0 device (Volta)
 #set_property(TARGET nbody_gpu PROPERTY CUDA_ARCHITECTURES 70-real)

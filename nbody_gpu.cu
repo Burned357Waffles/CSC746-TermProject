@@ -3,249 +3,345 @@
 // Created code harness for the sobel filter
 // (C) 2024, Brandon Watanabe
 // Modified code to be nbody simulation
-// 
+//
 // Usage:
 //
 
 #include <iostream>
-#include <vector>
 #include <chrono>
+#include <random>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <omp.h>  
+#include "likwid-stuff.h"
 
-// for an explanation of the formulas see:
-// https://www.cs.usask.ca/~spiteri/CMPT851/notes/nBody.pdf
+#define DIM 3
+#define HOUR 3600
+#define EARTH_DAY 3600 * 24
+#define EARTH_YEAR 3600 * 24 * 365
 
+typedef double vect_t[DIM];
 
-// easy-to-find and change variables for the input.
-// specify the name of a file containing data to be read in as bytes, along with 
-// dimensions [columns, rows]
+struct Body
+{
+   double mass;
+   vect_t velocity;
+   vect_t position;
 
-// this is the original laughing zebra image
-//static char input_fname[] = "../data/zebra-gray-int8";
-//static int data_dims[2] = {3556, 2573}; // width=ncols, height=nrows
-//char output_fname[] = "../data/processed-raw-int8-cpu.dat";
+   __device__ bool operator==(const Body& other) const
+   {
+      return mass == other.mass && 
+             std::equal(std::begin(velocity), std::end(velocity), std::begin(other.velocity)) &&
+             std::equal(std::begin(position), std::end(position), std::begin(other.position));
+   }
+};
 
-// this one is a 4x augmentation of the laughing zebra
-static char input_fname[] = "../data/zebra-gray-int8-4x";
-static int data_dims[2] = {7112, 5146}; // width=ncols, height=nrows
-/char output_fname[] = "../data/processed-raw-int8-4x-cpu.dat";
+char output_fname[] = "../data/positions.csv";
 
-// see https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
-// macro to check for cuda errors. basic idea: wrap this macro around every cuda call
+const double G = 6.67430e-11;
+const double AU = 1.496e11;
+const double SOLAR_MASS = 1.989e30;
+const double MERCURY_MASS = 3.285e23;
+const double VENUS_MASS = 4.867e24;
+const double EARTH_MASS = 5.972e24;
+const double MARS_MASS = 6.39e23;
+const double JUPITER_MASS = 1.898e27;
+const double SATURN_MASS = 5.683e26;
+const double URANUS_MASS = 8.681e25;
+const double NEPTUNE_MASS = 1.024e26;
+const double ASTEROID_MASS = 1.0e12;
+
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
-   if (code != cudaSuccess)
+   if (code != cudaSuccess) 
    {
       fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
       if (abort) exit(code);
    }
 }
 
-//
-// this function is callable only from device code
-//
-// perform the sobel filtering at a given i,j location
-// input: float *s - the source data
-// input: int i,j - the location of the pixel in the source data where we want to center our sobel convolution
-// input: int nrows, ncols: the dimensions of the input and output image buffers
-// input: float *gx, gy:  arrays of length 9 each, these are logically 3x3 arrays of sobel filter weights
-//
-// this routine computes Gx=gx*s centered at (i,j), Gy=gy*s centered at (i,j),
-// and returns G = sqrt(Gx^2 + Gy^2)
-
-// see https://en.wikipedia.org/wiki/Sobel_operator
-//
-__device__ float
-sobel_filtered_pixel(float *s, int i, int j , int ncols, int nrows, float *gx, float *gy)
+__global__ void compute_forces(Body* bodies, double* forces, int N)
 {
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i >= N) return;
 
-   float t=0.0;
-   float calculatedGx = 0.0, calculatedGy = 0.0;
+   double total_force[DIM] = {0.0, 0.0, 0.0};
 
-   int ix_start = i - 1;
-   int jy_start = j - 1;
-
-   for(int x = 0; x < 3; x++)
+   for(int j = 0; j < N; j++)
    {
-      int ix = ix_start + x;
-      if(ix < 0) ix = 0;
-      if(ix >= nrows) ix = nrows - 1;
-      
-      for(int y = 0; y < 3; y++)
-      {
-         int jy = jy_start + y;
-         if(jy < 0) jy = 0;
-         if(jy >= ncols) jy = ncols - 1;
+      if(i == j)
+         continue;
 
-         float pixel = s[ix * ncols + jy];
-         calculatedGx += pixel * gx[x * 3 + y];
-         calculatedGy += pixel * gy[x * 3 + y];
+      double dx[DIM] = {0.0, 0.0, 0.0};
+      double r = 0.0;
+      double r_norm = 0.0;
+
+      for (int idx = 0; idx < DIM; idx++)
+      {
+         dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
+         r += dx[idx] * dx[idx];
+      }
+
+      r_norm = sqrt(r);
+      if (r_norm == 0.0)
+         continue;
+
+      for (int idx = 0; idx < DIM; idx++)
+      {
+         double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         total_force[idx] += f;
       }
    }
 
-   t = sqrt(calculatedGx * calculatedGx + calculatedGy * calculatedGy);
-   return t;
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      forces[i * DIM + idx] = total_force[idx];
+   }
 }
 
-//
-// this function is the kernel that runs on the device
-// 
-// this code will look at CUDA variables: blockIdx, blockDim, threadIdx, blockDim and gridDim
-// to compute the index/stride to use in striding through the source array, calling the
-// sobel_filtered_pixel() function at each location to do the work.
-//
-// input: float *s - the source data, size=rows*cols
-// input: int i,j - the location of the pixel in the source data where we want to center our sobel convolution
-// input: int nrows, ncols: the dimensions of the input and output image buffers
-// input: float *gx, gy:  arrays of length 9 each, these are logically 3x3 arrays of sobel filter weights
-// output: float *d - the buffer for the output, size=rows*cols.
-//
-
-
-__global__ void
-sobel_kernel_gpu(float *s,  // source image pixels
-      float *d,  // dst image pixels
-      int n,  // size of image cols*rows,
-      int nrows,
-      int ncols,
-      float *gx, float *gy) // gx and gy are stencil weights for the sobel filter
+__global__ void update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
 {
-   // ADD CODE HERE: insert your code here that iterates over every (i,j) of input,  makes a call
-   // to sobel_filtered_pixel, and assigns the resulting value at location (i,j) in the output.
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i >= N) return;
 
-   // because this is CUDA, you need to use CUDA built-in variables to compute an index and stride
-   // your processing motif will be very similar here to that we used for vector add in Lab #2
-
-   int index = blockIdx.x * blockDim.x + threadIdx.x;
-   int stride = blockDim.x * gridDim.x;
-
-   for(int i = index; i < nrows; i += stride)
+   for (int idx = 0; idx < DIM; idx++)
    {
-      float* outPtr = d + i * ncols;
-      for(int j = 0; j < ncols; j++){
-         outPtr[j] = sobel_filtered_pixel(s, i, j, ncols, nrows, gx, gy);
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
+      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+   }
+
+   if (record_histories)
+   {
+      for (int idx = 0; idx < DIM; idx++)
+      {
+         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
+         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
       }
    }
+}
+
+void 
+do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
+{
+   int history_index = 1;
+   double* forces;
+   gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
+   
+   for(int t = 0; t < final_time; t+=timestep)
+   {
+      memset(forces, 0, N * DIM * sizeof(double));
+
+      compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
+      gpuErrchk(cudaDeviceSynchronize());
+
+      update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      gpuErrchk(cudaDeviceSynchronize());
+
+      history_index++;
+   }
+
+   gpuErrchk(cudaFree(forces));
+}
+
+// This function will initialize the bodies with 
+// random masses, initial velocities, and initial positions
+// mass is in the range 1.0e-6 to SOLAR_MASS
+// velocity is in the range -1.0 to 1.0
+// position is in the range -1.0 to 1.0
+// 
+// To get an orbit:
+// 1. Set the mass of the first body to SOLAR_MASS
+// 2. Set the velocity of the first body to 0
+// 3. Set the position of the first body to 0
+// 4. Body 1 mass: 1e+12
+// 5. Body 1 velocity: 22365.5, 24955.3, 28634.1
+// 6/ Body 1 position: -1.77419e+09, 1.52822e+10, -2.62286e+10
+
+Body*
+init_random_bodies(const int N)
+{
+   Body* bodies;
+   gpuErrchk(cudaMallocManaged(&bodies, N * sizeof(Body)));
+   std::random_device rd;
+   std::mt19937 gen(rd());
+   std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, SOLAR_MASS);
+   std::uniform_real_distribution<double> velocity_dist(-50.0e3, 50.0e3); // Velocity in m/s
+   std::uniform_real_distribution<double> position_dist(-AU, AU);
+
+   for(int i = 0; i < N; i++)
+   {
+      Body body;
+      body.mass = mass_dist(gen);
+
+      for (int j = 0; j < DIM; j++)
+      {
+         body.velocity[j] = velocity_dist(gen);
+         body.position[j] = position_dist(gen);
+      }
+      bodies[i] = body;
+   }
+   
+   return bodies;
+}
+
+
+Body*
+init_solar_system()
+{
+   Body* bodies;
+   gpuErrchk(cudaMallocManaged(&bodies, 9 * sizeof(Body)));
+
+   double masses[] = {SOLAR_MASS, MERCURY_MASS, VENUS_MASS, EARTH_MASS, MARS_MASS, JUPITER_MASS, SATURN_MASS, URANUS_MASS, NEPTUNE_MASS};
+   double velocities[][3] = {
+         {0, 0, 0},
+         {0, 47.87e3, 0},
+         {0, 35.02e3, 0},
+         {0, 29.78e3, 0},
+         {0, 24.07e3, 0},
+         {0, 13.07e3, 0},
+         {0, 9.69e3, 0},
+         {0, 6.81e3, 0},
+         {0, 5.43e3, 0}
+   };
+   double positions[][3] = {
+         {0, 0, 0},
+         {0.39 * AU, 0, 0},
+         {0.72 * AU, 0, 0},
+         {AU, 0, 0},
+         {1.52 * AU, 0, 0},
+         {5.20 * AU, 0, 0},
+         {9.58 * AU, 0, 0},
+         {19.22 * AU, 0, 0},
+         {30.05 * AU, 0, 0}
+   };
+
+   for (int i = 0; i < 9; ++i) {
+      bodies[i].mass = masses[i];
+      for (int j = 0; j < 3; ++j) {
+         bodies[i].velocity[j] = velocities[i][j];
+         bodies[i].position[j] = positions[i][j];
+      }
+   }
+
+   return bodies;
+}
+
+void 
+write_data_to_file(Body* bodies, const int N, const int timestep, const unsigned long long final_time, double* velocity_history, double* position_history) 
+{
+   int num_data_points = (final_time / timestep) + 1;
+
+   FILE *fp = fopen(output_fname, "w");
+   if (fp == NULL)
+   {
+      std::cerr << "Error: could not open file " << output_fname << " for writing" << std::endl;
+      exit(1);
+   }
+
+   // Print header
+   fprintf(fp, "body_num,m,vx,vy,vz,x,y,z\n");
+
+   for (int i = 0; i < N; i++)
+   {
+      for (int j = 0; j < num_data_points; j++) {
+         const double* pos = &position_history[(j * N + i) * DIM];
+         const double* vel = &velocity_history[(j * N + i) * DIM];
+         fprintf(fp, "%d,%f,%f,%f,%f,%f,%f,%f\n", i, bodies[i].mass, vel[0], vel[1], vel[2], pos[0], pos[1], pos[2]);
+      }
+   }
+
+   fclose(fp);
+
+   std::cout << "Data written to " << output_fname << std::endl;
+}
+
+double* allocate_history(int N, int history_length)
+{
+   double* history;
+   gpuErrchk(cudaMallocManaged(&history, history_length * N * DIM * sizeof(double)));
+   return history;
+}
+
+void free_history(double* history)
+{
+   gpuErrchk(cudaFree(history));
 }
 
 int
 main (int ac, char *av[])
 {
-   // input, output file names hard coded at top of file
-
-   // load the input file
-   off_t nvalues = data_dims[0]*data_dims[1];
-   unsigned char *in_data_bytes = (unsigned char *)malloc(sizeof(unsigned char)*nvalues);
-
-   FILE *f = fopen(input_fname,"r");
-   if (fread((void *)in_data_bytes, sizeof(unsigned char), nvalues, f) != nvalues*sizeof(unsigned char))
-   {
-      printf("Error reading input file. \n");
-      fclose(f);
-      return 1;
-   }
-   else
-      printf(" Read data from the file %s \n", input_fname);
-   fclose(f);
-
-#define ONE_OVER_255 0.003921568627451
-
-   // now convert input from byte, in range 0..255, to float, in range 0..1
-   float *in_data_floats;
-   gpuErrchk( cudaMallocManaged(&in_data_floats, sizeof(float)*nvalues) );
-
-   for (off_t i=0; i<nvalues; i++)
-      in_data_floats[i] = (float)in_data_bytes[i] * ONE_OVER_255;
-
-   // now, create a buffer for output
-   float *out_data_floats;
-   gpuErrchk( cudaMallocManaged(&out_data_floats, sizeof(float)*nvalues) );
-   for (int i=0;i<nvalues;i++)
-      out_data_floats[i] = 1.0;  // assign "white" to all output values for debug
-
-   // define sobel filter weights, copy to a device accessible buffer
-   float Gx[9] = {1.0, 0.0, -1.0, 2.0, 0.0, -2.0, 1.0, 0.0, -1.0};
-   float Gy[9] = {1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0};
-   float *device_gx, *device_gy;
-   gpuErrchk( cudaMallocManaged(&device_gx, sizeof(float)*sizeof(Gx)) );
-   gpuErrchk( cudaMallocManaged(&device_gy, sizeof(float)*sizeof(Gy)) );
-
-   for (int i=0;i<9;i++) // copy from Gx/Gy to device_gx/device_gy
-   {
-      device_gx[i] = Gx[i];
-      device_gy[i] = Gy[i];
-   }
-   
-   // now, induce memory movement to the GPU of the data in unified memory buffers
-
-   int deviceID=0; // assume GPU#0, always. OK assumption for this program
-   cudaMemPrefetchAsync((void *)in_data_floats, nvalues*sizeof(float), deviceID);
-   cudaMemPrefetchAsync((void *)out_data_floats, nvalues*sizeof(float), deviceID);
-   cudaMemPrefetchAsync((void *)device_gx, sizeof(Gx)*sizeof(float), deviceID);
-   cudaMemPrefetchAsync((void *)device_gy, sizeof(Gy)*sizeof(float), deviceID);
-
-   // set up to run the kernel
-   // int nBlocks=1, nThreadsPerBlock=256;
-
-   // ADD CODE HERE: insert your code here to set a different number of thread blocks or # of threads per block
-   int nBlocks, nThreadsPerBlock;
-
-   printf("ac: %d\n", ac);
-   // set nBlocks andnThreadsPerBlock based on av
-   if (ac != 5)
-   {
-      printf("Usage: sobel_gpu -nb <nBlocks> -nt <nThreadsPerBlock> \n");
+   if (ac < 7) {
+      std::cerr << "Usage: " << av[0] << " <number_of_bodies> <record_histories> <timestep_modifier> <final_time_modifier> <threads_per_block> <num_blocks>" << std::endl;
       return 1;
    }
 
-   if (strcmp(av[1], "-nb") == 0)
+   LIKWID_MARKER_INIT;
+
+   int N = std::stoi(av[1]);
+   bool record_histories = std::stoi(av[2]);
+   int timestep_modifier = std::stoi(av[3]);
+   int final_time_modifier = std::stoi(av[4]);
+   int threads_per_block = std::stoi(av[5]);
+   int num_blocks = std::stoi(av[6]);
+
+   int timestep = HOUR * timestep_modifier;
+   unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR) * final_time_modifier; 
+
+   Body* bodies = nullptr;
+   if (N == -1)
    {
-      nBlocks = atoi(av[2]);
-      if (nBlocks <= 0)
+      N = 9;
+      bodies = init_solar_system();
+   }
+   else 
+   {
+      bodies = init_random_bodies(N);
+   }
+
+   int history_length = (final_time / timestep + 1);
+   double* velocity_history = allocate_history(N, history_length);
+   double* position_history = allocate_history(N, history_length);
+
+   if (record_histories)
+   {
+      for (int i = 0; i < N; i++)
       {
-         printf("Error: Invalid number of blocks. Must be a positive integer.\n");
-         return 1;
+         for (int idx = 0; idx < DIM; idx++)
+         {
+            velocity_history[i * DIM + idx] = bodies[i].velocity[idx];
+            position_history[i * DIM + idx] = bodies[i].position[idx];
+         }
       }
    }
 
-   if (strcmp(av[3], "-nt") == 0)
-   {
-      nThreadsPerBlock = atoi(av[4]);
-      if (nThreadsPerBlock <= 0)
-      {
-         printf("Error: Invalid number of threads per block. Must be a positive integer.\n");
-         return 1;
-      }
-   }
+   std::cout << "Number of bodies: " << N << std::endl;
 
+   // do the processing =======================
+   std::cout << "Starting nbody calculation" << std::endl;
 
-   printf(" GPU configuration: %d blocks, %d threads per block \n", nBlocks, nThreadsPerBlock);
+   std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   // invoke the kernel on the device
-   sobel_kernel_gpu<<<nBlocks, nThreadsPerBlock>>>(in_data_floats, out_data_floats, nvalues, data_dims[1], data_dims[0], device_gx, device_gy);
+   do_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, threads_per_block, num_blocks);
 
-   // wait for it to finish, check errors
-   gpuErrchk (  cudaDeviceSynchronize() );
+   std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
-   // write output after converting from floats in range 0..1 to bytes in range 0..255
-   unsigned char *out_data_bytes = in_data_bytes;  // just reuse the buffer from before
-   for (off_t i=0; i<nvalues; i++)
-      out_data_bytes[i] = (unsigned char)(out_data_floats[i] * 255.0);
+   std::chrono::duration<double> elapsed = end_time - start_time;
+   std::cout << " Elapsed time is : " << elapsed.count() << " " << std::endl;
 
-   f = fopen(output_fname,"w");
-
-   if (fwrite((void *)out_data_bytes, sizeof(unsigned char), nvalues, f) != nvalues*sizeof(unsigned char))
-   {
-      printf("Error writing output file. \n");
-      fclose(f);
-      return 1;
-   }
+   if (record_histories)
+      write_data_to_file(bodies, N, timestep, final_time, velocity_history, position_history);
    else
-      printf(" Wrote the output file %s \n", output_fname);
-   fclose(f);
+      std::cout << "Histories were not recorded" << std::endl;
+
+   free_history(velocity_history);
+   free_history(position_history);
+   gpuErrchk(cudaFree(bodies));
+
+   LIKWID_MARKER_CLOSE;
+
+   return 0;
 }
 
 // eof
