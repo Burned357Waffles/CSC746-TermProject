@@ -135,7 +135,12 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    {
       for (int i = threadIdx.x; i < N * DIM; i += blockDim.x)
       {
-         shared_forces[i] = 0.0;
+         if (i < N * DIM) {
+            shared_forces[i] = 0.0;
+         } else {
+            printf("Error: Out of bounds access in shared_forces initialization at index %d\n", i);
+            return;
+         }
       }
       __syncthreads();
 
