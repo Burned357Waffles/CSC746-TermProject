@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-#project(sobel_harness LANGUAGES CXX)
+#project(nbody_harness LANGUAGES CXX CUDA)
 
 # 19 oct 2023: we are assuming the use of the NVHPC compiler on Perlmutter
 # the compilation flags baked in below reflect that assumption
@@ -37,6 +37,6 @@ target_link_options(nbody_cpu PRIVATE -fopenmp)
 set(BENCHMARK "nbody_cpu")
 configure_file(job.in job-${BENCHMARK})
 
-# add_executable(sobel_gpu sobel_gpu.cu)
-# generate CUDA code for an actual compute capability 7.0 device (Volta)
-# set_property(TARGET sobel_gpu PROPERTY CUDA_ARCHITECTURES 70-real)
+#add_executable(nbody_gpu nbody_gpu.cu)
+#generate CUDA code for an actual compute capability 7.0 device (Volta)
+#set_property(TARGET nbody_gpu PROPERTY CUDA_ARCHITECTURES 70-real)
