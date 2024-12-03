@@ -69,26 +69,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-__global__ void 
-compute_forces(Body* bodies, double* forces, int N)
+__device__ void 
+compute_forces(Body* bodies, Body i, double* total_force, int N)
 {
-   extern __shared__ double shared_positions[];
-
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i >= N) return;
-
-   // Load positions into shared memory
-   for (int idx = 0; idx < DIM; idx++)
-   {
-      shared_positions[threadIdx.x * DIM + idx] = bodies[i].position[idx];
-   }
-   __syncthreads();
-
-   double total_force[DIM] = {0.0, 0.0, 0.0};
-
    for(int j = 0; j < N; j++)
    {
-      if(i == j)
+      if(i == bodies[j])
          continue;
 
       double dx[DIM] = {0.0, 0.0, 0.0};
@@ -97,12 +83,7 @@ compute_forces(Body* bodies, double* forces, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         // Ensure j is within bounds
-         if (j >= blockDim.x) {
-            dx[idx] = bodies[j].position[idx] - shared_positions[threadIdx.x * DIM + idx];
-         } else {
-            dx[idx] = shared_positions[j * DIM + idx] - shared_positions[threadIdx.x * DIM + idx];
-         }
+         dx[idx] = bodies[j].position[idx] - i.position[idx];
          r += dx[idx] * dx[idx];
       }
 
@@ -112,58 +93,58 @@ compute_forces(Body* bodies, double* forces, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         double f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] += f;
       }
    }
+}
 
-   for (int idx = 0; idx < DIM; idx++)
+__device__ void 
+update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
+{
+   for (int i = 0; i < N; i++)
    {
-      forces[i * DIM + idx] = total_force[idx];
+      for (int idx = 0; idx < DIM; idx++)
+      {
+         bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
+         bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+      }
+
+      if (record_histories)
+      {
+         for (int idx = 0; idx < DIM; idx++)
+         {
+            velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
+            position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
+         }
+      }
    }
 }
 
 __global__ void 
-update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
-{
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i >= N) return;
-
-   for (int idx = 0; idx < DIM; idx++)
-   {
-      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
-      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
-   }
-
-   if (record_histories)
-   {
-      for (int idx = 0; idx < DIM; idx++)
-      {
-         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
-         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
-      }
-   }
-}
-
-void 
-do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
+do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
 {
    int history_index = 1;
    double* forces;
    gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
-   
-   size_t shared_memory_size = threads_per_block * DIM * sizeof(double);
+
+   int index = blockIdx.x * blockDim.x + threadIdx.x;
+   int stride = blockDim.x * gridDim.x;   
 
    for(int t = 0; t < final_time; t+=timestep)
    {
       memset(forces, 0, N * DIM * sizeof(double));
-
-      compute_forces<<<num_blocks, threads_per_block, shared_memory_size>>>(bodies, forces, N);
+      for (int i = index; i < N; i += stride)
+      { 
+         compute_forces(bodies, bodies[i], forces, N);
+      }
       gpuErrchk(cudaDeviceSynchronize());
 
-      update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      for (int i = index; i < N; i += stride)
+      {
+         update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      }
       gpuErrchk(cudaDeviceSynchronize());
-
       history_index++;
    }
 
@@ -348,7 +329,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, threads_per_block, num_blocks);
+   do_nBody_calculation<<<num_blocks, threads_per_block>>>(bodies, N, timestep, final_time, record_histories, velocity_history, position_history);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
