@@ -46,7 +46,7 @@ struct Body
 
 char output_fname[] = "../data/positions.csv";
 
-__constant__ double G = 6.67430e-11;
+const double G = 6.67430e-11;
 const double AU = 1.496e11;
 const double SOLAR_MASS = 1.989e30;
 const double MERCURY_MASS = 3.285e23;
@@ -69,12 +69,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-__device__ void 
-compute_forces(Body* bodies, Body i, double* total_force, int N)
+__global__ void compute_forces(Body* bodies, double* forces, int N)
 {
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i >= N) return;
+
+   double total_force[DIM] = {0.0, 0.0, 0.0};
+
    for(int j = 0; j < N; j++)
    {
-      if(i == bodies[j])
+      if(i == j)
          continue;
 
       double dx[DIM] = {0.0, 0.0, 0.0};
@@ -83,7 +87,7 @@ compute_forces(Body* bodies, Body i, double* total_force, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         dx[idx] = bodies[j].position[idx] - i.position[idx];
+         dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
          r += dx[idx] * dx[idx];
       }
 
@@ -93,77 +97,60 @@ compute_forces(Body* bodies, Body i, double* total_force, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         double f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] += f;
       }
    }
+
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      forces[i * DIM + idx] = total_force[idx];
+   }
 }
 
-__device__ void 
-update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
+__global__ void update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
 {
-   for (int i = 0; i < N; i++)
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i >= N) return;
+
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
+      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+   }
+
+   if (record_histories)
    {
       for (int idx = 0; idx < DIM; idx++)
       {
-         bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
-         bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
-      }
-
-      if (record_histories)
-      {
-         for (int idx = 0; idx < DIM; idx++)
-         {
-            velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
-            position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
-         }
+         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
+         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
       }
    }
 }
 
-__global__ void 
-do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, double* forces)
+void 
+do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
 {
-   extern __shared__ double shared_forces[];
-
    int history_index = 1;
-
-   int index = blockIdx.x * blockDim.x + threadIdx.x;
-   int stride = blockDim.x * gridDim.x;   
-
-   for(int t = 0; t < final_time; t+=timestep)
-   {
-      for (int i = threadIdx.x; i < N * DIM; i += blockDim.x)
-      {
-         shared_forces[i] = 0.0;
-      }
-      __syncthreads();
-
-      for (int i = index; i < N; i += stride)
-      { 
-         compute_forces(bodies, bodies[i], shared_forces, N);
-      }
-      __syncthreads();
-
-      for (int i = index; i < N; i += stride)
-      {
-         update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
-      }
-      __syncthreads();
-      history_index++;
-   }
-}
-
-void launch_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, const int numBlocks, const int blockSize)
-{
    double* forces;
    gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
-   size_t sharedMemSize = N * DIM * sizeof(double);
-   do_nBody_calculation<<<numBlocks, blockSize, sharedMemSize>>>(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, forces);
-   gpuErrchk(cudaGetLastError());
-   gpuErrchk(cudaDeviceSynchronize());
+   
+   for(int t = 0; t < final_time; t+=timestep)
+   {
+      memset(forces, 0, N * DIM * sizeof(double));
 
-   cudaFree(forces);
+
+      compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
+      gpuErrchk(cudaDeviceSynchronize());
+
+      update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      gpuErrchk(cudaDeviceSynchronize());
+
+      history_index++;
+   }
+
+   gpuErrchk(cudaFree(forces));
 }
 
 // This function will initialize the bodies with 
@@ -344,7 +331,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   launch_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, num_blocks, threads_per_block);
+   do_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, threads_per_block, num_blocks);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
