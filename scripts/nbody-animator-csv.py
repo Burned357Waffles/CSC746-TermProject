@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 
 colorful = True
 
@@ -38,7 +38,7 @@ fig = plt.figure(figsize=(20, 10))
 ax = plt.axes(projection='3d')
 
 unique_bodies = b.unique()
-colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
+colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))[::-1]
 
 # Initialize scatter and line objects
 scatters = []
@@ -77,7 +77,11 @@ def update(frame):
 
     return scatters + lines
 
+
+#frames = min(len(df) // len(unique_bodies), 1000)
 frames = len(df) // len(unique_bodies)
-ani = FuncAnimation(fig, update, frames=frames, interval=50, blit=False)
+ani = FuncAnimation(fig, update, frames=frames, interval=10, blit=False)
+
+#ani.save('nbody_animation.gif', writer=PillowWriter(fps=30))
 
 plt.show()

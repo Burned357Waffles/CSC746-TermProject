@@ -41,7 +41,7 @@ max_mass_index = df['m'].idxmax()
 max_mass_body = df.loc[max_mass_index, 'body_num']
 
 unique_bodies = b.unique()
-colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))
+colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))[::-1]
 # Plotting the first and last positions with dots and keeping the line
 for body in b.unique():
     body_mask = (b == body)
@@ -59,7 +59,8 @@ for body in b.unique():
             color = 'blue'
 
     # Plot the first and last positions with dots
-    ax.scatter(x_body.iloc[[0, -1]], y_body.iloc[[0, -1]], z_body.iloc[[0, -1]], s=m_body.iloc[[0, -1]], color=color)
+    ax.scatter(x_body.iloc[[0]], y_body.iloc[[0]], z_body.iloc[[0]], s=m_body.iloc[[0]], color=color)
+    ax.scatter(x_body.iloc[[-1]], y_body.iloc[[-1]], z_body.iloc[[-1]], s=m_body.iloc[[-1]], color=color, alpha=0.5)
 
     # Plot the line for the entire trajectory
     ax.plot3D(x_body, y_body, z_body, color=color)
