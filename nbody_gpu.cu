@@ -78,7 +78,10 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
    // Load bodies into shared memory
    for (int j = threadIdx.x; j < N; j += blockDim.x)
    {
-      shared_bodies[j] = bodies[j];
+      if (j < N) // Add bounds check
+      {
+         shared_bodies[j] = bodies[j];
+      }
    }
    __syncthreads();
 
