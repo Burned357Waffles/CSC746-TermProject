@@ -170,14 +170,12 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    }
 }
 
-void launch_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
+void launch_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, const int numBlocks, const int blockSize)
 {
    double* forces;
    gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
-
-   int blockSize = 256;
-   int numBlocks = (N + blockSize - 1) / blockSize;
-   do_nBody_calculation<<<numBlocks, blockSize>>>(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, forces);
+   size_t sharedMemSize = N * DIM * sizeof(double);
+   do_nBody_calculation<<<numBlocks, blockSize, sharedMemSize>>>(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, forces);
    gpuErrchk(cudaGetLastError());
    gpuErrchk(cudaDeviceSynchronize());
 
@@ -362,7 +360,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   launch_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history);
+   launch_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, num_blocks, threads_per_block);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
