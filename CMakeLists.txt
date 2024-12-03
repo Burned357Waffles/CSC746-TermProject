@@ -8,7 +8,21 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 set(CMAKE_BUILD_TYPE "Release")
 
+find_package(LIKWID QUIET)
+
+# use cmake --log-level=debug to see DEBUG messages
+if ( LIKWID_FOUND ) 
+   message ( STATUS "Likwid: found")
+else()
+   message( STATUS  "Likwid: NOT found")
+endif()
+
 add_executable(nbody_cpu nbody_cpu.cpp)
+if ( LIKWID_FOUND )
+   target_include_directories(nbody_cpu PRIVATE ${LIKWID_INCLUDE_DIR})
+   target_compile_definitions(nbody_cpu PRIVATE -DLIKWID_PERFMON)
+   target_link_libraries(nbody_cpu PRIVATE ${LIKWID_LIBRARIES})
+endif ()
 target_compile_options(nbody_cpu PRIVATE -fopenmp -Ofast)
 target_link_options(nbody_cpu PRIVATE -fopenmp)
 set(BENCHMARK "nbody_cpu")
@@ -16,4 +30,4 @@ configure_file(job.in job-${BENCHMARK})
 
 # add_executable(sobel_gpu sobel_gpu.cu)
 # generate CUDA code for an actual compute capability 7.0 device (Volta)
-# set_property(TARGET sobel_gpu PROPERTY CUDA_ARCHITECTURES 70-real) 
+# set_property(TARGET sobel_gpu PROPERTY CUDA_ARCHITECTURES 70-real)

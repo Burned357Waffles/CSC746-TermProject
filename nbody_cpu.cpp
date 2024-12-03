@@ -15,6 +15,7 @@
 #include <string.h>
 #include <math.h>
 #include <omp.h>  
+#include "likwid-stuff.h"
 
 #define DIM 3
 #define HOUR 3600
@@ -120,15 +121,26 @@ do_nBody_calculation(std::vector<Body>& bodies, const int N, const int timestep,
    for(int t = 0; t < final_time; t+=timestep)
    {
       std::vector<double> forces(N * DIM, 0.0);
-
-      #pragma omp parallel for
-      for(int i = 0; i < N; i++)
+      
+      #pragma omp parallel 
       {
-         std::vector<double> force = compute_forces(bodies, bodies[i], N);
-         for (int idx = 0; idx < DIM; idx++)
+         #ifdef LIKWID_PERFMON
+         LIKWID_MARKER_START(MY_MARKER_REGION_NAME);
+         #endif
+
+         #pragma omp for
+         for(int i = 0; i < N; i++)
          {
-            forces[i * DIM + idx] = force[idx];
+            std::vector<double> force = compute_forces(bodies, bodies[i], N);
+            for (int idx = 0; idx < DIM; idx++)
+            {
+               forces[i * DIM + idx] = force[idx];
+            }
          }
+
+         #ifdef LIKWID_PERFMON
+         LIKWID_MARKER_STOP(MY_MARKER_REGION_NAME);
+         #endif
       }
 
       update_bodies(bodies, forces, timestep, N, record_histories);
@@ -294,6 +306,8 @@ main (int ac, char *av[])
       return 1;
    }
 
+   LIKWID_MARKER_INIT;
+
    #pragma omp parallel
    {
       // ID of the thread in the current team
@@ -304,6 +318,11 @@ main (int ac, char *av[])
       #pragma omp critical
       {
          std::cout << "Hello world, I'm thread " << thread_id << " out of " << nthreads << " total threads. " << std::endl; 
+         // Each thread must add itself to the Marker API, therefore must be
+         // in parallel region
+         LIKWID_MARKER_THREADINIT;
+         // Register region name
+         LIKWID_MARKER_REGISTER(MY_MARKER_REGION_NAME);
       }
    }
 
@@ -347,6 +366,13 @@ main (int ac, char *av[])
       write_data_to_file(bodies, N);
    else
       std::cout << "Histories were not recorded" << std::endl;
+
+   // Close Marker API and write results to file for further evaluation done
+   // by likwid-perfctr
+   LIKWID_MARKER_CLOSE;
+
+   return 0;
+
 }
 
 // eof
