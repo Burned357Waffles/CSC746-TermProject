@@ -22,11 +22,6 @@ export OMP_PROC_BIND=spread
 
 # use PERF_COUNTER_GROUP to tell likwif-perfctr which perf counter group to monitor
 # the default here, FLOPS_DP, counts the number of double-precisions FLOPS
-#export PERF_COUNTER_GROUP=FLOPS_DP
-#export PERF_COUNTER_GROUP=L2CACHE
-#export PERF_COUNTER_GROUP=L3CACHE
-
-PERF_COUNTER_GROUPS=("FLOPS_DP" "L2CACHE" "L3CACHE")
 
 # use the MARKER_FLAG variable to activate LIKWID's marker API, which will result in 
 # perf counter data being collected only in the region of code surrounded by marker start/stop
@@ -44,25 +39,65 @@ export MARKER_FLAG="-m"
 # the default scheduling algorithm is static
 # export OMP_SCHEDULE=static
 # export OMP_SCHEDULE=dynamic
-for PERF_COUNTER_GROUP in "${PERF_COUNTER_GROUPS[@]}"
+export PERF_COUNTER_GROUP=FLOPS_DP
+for N in 256 512 1024 2048
 do
-   for N in 256 512 1024 2048
-      do
-      for t in 4 16 64
-         do
-            #export OMP_NUM_THREADS=$t
-            
-            #echo "OMP_NUM_THREADS = " $OMP_NUM_THREADS
-            #./job-@BENCHMARK@
-            #echo "Finished job-@BENCHMARK@ with $OMP_NUM_THREADS threads"
+   for t in 4 16 64
+   do
+         #export OMP_NUM_THREADS=$t
+         
+         #echo "OMP_NUM_THREADS = " $OMP_NUM_THREADS
+         #./job-@BENCHMARK@
+         #echo "Finished job-@BENCHMARK@ with $OMP_NUM_THREADS threads"
 
-         echo likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
-         likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+      echo likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+      likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
 
-         done # iterate over concurrency level
-   #   srun -n 1  ./benchmark-@BENCHMARK@  # fall 2023, don't use srun to launch non-MPI jobs
-   # don't use --cpu-bind=threads on KNL when P % 272 != 0
-   # see https://docs.nersc.gov/jobs/affinity/#slurm-cpu-bind-flag
-   #   srun -n 1 --cpu-bind=threads ./benchmark-@BENCHMARK@
-   done
+   done # iterate over concurrency level
+#   srun -n 1  ./benchmark-@BENCHMARK@  # fall 2023, don't use srun to launch non-MPI jobs
+# don't use --cpu-bind=threads on KNL when P % 272 != 0
+# see https://docs.nersc.gov/jobs/affinity/#slurm-cpu-bind-flag
+#   srun -n 1 --cpu-bind=threads ./benchmark-@BENCHMARK@
+done
+
+export PERF_COUNTER_GROUP=L2CACHE
+for N in 256 512 1024 2048
+do
+   for t in 4 16 64
+   do
+         #export OMP_NUM_THREADS=$t
+         
+         #echo "OMP_NUM_THREADS = " $OMP_NUM_THREADS
+         #./job-@BENCHMARK@
+         #echo "Finished job-@BENCHMARK@ with $OMP_NUM_THREADS threads"
+
+      echo likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+      likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+
+   done # iterate over concurrency level
+#   srun -n 1  ./benchmark-@BENCHMARK@  # fall 2023, don't use srun to launch non-MPI jobs
+# don't use --cpu-bind=threads on KNL when P % 272 != 0
+# see https://docs.nersc.gov/jobs/affinity/#slurm-cpu-bind-flag
+#   srun -n 1 --cpu-bind=threads ./benchmark-@BENCHMARK@
+done
+
+export PERF_COUNTER_GROUP=L3CACHE
+for N in 256 512 1024 2048
+do
+   for t in 4 16 64
+   do
+         #export OMP_NUM_THREADS=$t
+         
+         #echo "OMP_NUM_THREADS = " $OMP_NUM_THREADS
+         #./job-@BENCHMARK@
+         #echo "Finished job-@BENCHMARK@ with $OMP_NUM_THREADS threads"
+
+      echo likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+      likwid-perfctr $MARKER_FLAG -g $PERF_COUNTER_GROUP -C N:0-$maxcore ./@BENCHMARK@ $N 0 1 100 
+
+   done # iterate over concurrency level
+#   srun -n 1  ./benchmark-@BENCHMARK@  # fall 2023, don't use srun to launch non-MPI jobs
+# don't use --cpu-bind=threads on KNL when P % 272 != 0
+# see https://docs.nersc.gov/jobs/affinity/#slurm-cpu-bind-flag
+#   srun -n 1 --cpu-bind=threads ./benchmark-@BENCHMARK@
 done
