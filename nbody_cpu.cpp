@@ -17,6 +17,9 @@
 #include <omp.h>  
 
 #define DIM 3
+#define HOUR 3600
+#define EARTH_DAY 3600 * 24
+#define EARTH_YEAR 3600 * 24 * 365
 
 struct Body
 {
@@ -108,7 +111,7 @@ update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, cons
 }
 
 void 
-do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned int final_time)
+do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned long long final_time)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
@@ -149,7 +152,7 @@ init_random_bodies(int N)
    std::random_device rd;
    std::mt19937 gen(rd());
    //std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, ASTEROID_MASS);
-   std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, JUPITER_MASS);
+   std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, SOLAR_MASS);
    std::uniform_real_distribution<double> velocity_dist(-50.0e3, 50.0e3); // Velocity in m/s
    std::uniform_real_distribution<double> position_dist(-AU, AU);
 
@@ -157,8 +160,8 @@ init_random_bodies(int N)
    {
       Body body;
       body.mass = mass_dist(gen);
-      //body.velocity.resize(dimensions);
-      //body.position.resize(dimensions); // Resize the position vector
+      //body.velocity.resize(DIM);
+      //body.position.resize(DIM); // Resize the position vector
 
       for (int j = 0; j < DIM; j++)
       {
@@ -302,8 +305,8 @@ main (int ac, char *av[])
 
    int N = std::stoi(av[1]);
 
-   int timestep = 60 * 60;
-   unsigned int final_time = timestep * 24 * 365 * 300; 
+   int timestep = EARTH_DAY;
+   unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR); 
 
    std::vector<Body> bodies;
    if (N == -1)
