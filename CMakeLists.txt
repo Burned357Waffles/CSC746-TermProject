@@ -17,6 +17,15 @@ else()
    message( STATUS  "Likwid: NOT found")
 endif()
 
+# We require the GNU compiler for this assignment.
+if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    set(Prg-Intel "PrgEnv-intel")
+    set(Prg-Clang "PrgEnv-cray")
+    message(WARNING
+            "Must use GNU Compiler for submission. Make sure you ran:\n"
+            "module swap ${Prg-${CMAKE_C_COMPILER_ID}} PrgEnv-gnu")
+endif ()
+
 add_executable(nbody_cpu nbody_cpu.cpp)
 if ( LIKWID_FOUND )
    target_include_directories(nbody_cpu PRIVATE ${LIKWID_INCLUDE_DIR})
