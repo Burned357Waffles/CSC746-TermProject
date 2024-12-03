@@ -29,11 +29,18 @@ struct Body
    vect_t velocity;
    vect_t position;
 
-   __device__ bool operator==(const Body& other) const
+   
    {
-      return mass == other.mass && 
-             std::equal(std::begin(velocity), std::end(velocity), std::begin(other.velocity)) &&
-             std::equal(std::begin(position), std::end(position), std::begin(other.position));
+      if (mass != other.mass)
+         return false;
+
+      for (int i = 0; i < DIM; ++i)
+      {
+         if (velocity[i] != other.velocity[i] || position[i] != other.position[i])
+            return false;
+      }
+
+      return true;
    }
 };
 
