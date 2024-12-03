@@ -46,7 +46,7 @@ struct Body
 
 char output_fname[] = "../data/positions.csv";
 
-const double G = 6.67430e-11;
+__constant__ double G = 6.67430e-11;
 const double AU = 1.496e11;
 const double SOLAR_MASS = 1.989e30;
 const double MERCURY_MASS = 3.285e23;
@@ -135,35 +135,41 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    {
       for (int i = threadIdx.x; i < N * DIM; i += blockDim.x)
       {
-         if (i < N * DIM) {
-            shared_forces[i] = 0.0;
-         } else {
-            printf("Error: Out of bounds access in shared_forces initialization at index %d\n", i);
-            return;
-         }
+         shared_forces[i] = 0.0;
       }
       __syncthreads();
 
-      //memset(forces, 0, N * DIM * sizeof(double));
       for (int i = index; i < N; i += stride)
       { 
-         if (i < N) {
-            compute_forces(bodies, bodies[i], shared_forces, N);
-         } else {
-            printf("Error: Out of bounds access in compute_forces at index %d\n", i);
-            return;
+         for (int j = 0; j < N; j++)
+         {
+            if (i == j) continue;
+
+            double dx[DIM] = {0.0, 0.0, 0.0};
+            double r = 0.0;
+            double r_norm = 0.0;
+
+            for (int idx = 0; idx < DIM; idx++)
+            {
+               dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
+               r += dx[idx] * dx[idx];
+            }
+
+            r_norm = sqrt(r);
+            if (r_norm == 0.0) continue;
+
+            for (int idx = 0; idx < DIM; idx++)
+            {
+               double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
+               atomicAdd(&shared_forces[i * DIM + idx], f);
+            }
          }
       }
       __syncthreads();
 
       for (int i = index; i < N; i += stride)
       {
-         if (i < N) {
-            update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
-         } else {
-            printf("Error: Out of bounds access in update_bodies at index %d\n", i);
-            return;
-         }
+         update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       }
       __syncthreads();
       history_index++;
