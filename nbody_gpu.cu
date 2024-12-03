@@ -158,7 +158,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 void launch_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
 {
    double* forces;
-   gpuErrchkcudaMallocManaged(&forces, N * DIM * sizeof(double));
+   gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
 
    int blockSize = 256;
    int numBlocks = (N + blockSize - 1) / blockSize;
