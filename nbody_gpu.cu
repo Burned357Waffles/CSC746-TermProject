@@ -126,7 +126,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 {
    int history_index = 1;
    double* forces;
-   gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
+   cudaMallocManaged(&forces, N * DIM * sizeof(double));
 
    int index = blockIdx.x * blockDim.x + threadIdx.x;
    int stride = blockDim.x * gridDim.x;   
@@ -138,17 +138,17 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
       { 
          compute_forces(bodies, bodies[i], forces, N);
       }
-      gpuErrchk(cudaDeviceSynchronize());
+      cudaDeviceSynchronize();
 
       for (int i = index; i < N; i += stride)
       {
          update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       }
-      gpuErrchk(cudaDeviceSynchronize());
+      cudaDeviceSynchronize();
       history_index++;
    }
 
-   gpuErrchk(cudaFree(forces));
+   cudaFree(forces);
 }
 
 // This function will initialize the bodies with 
