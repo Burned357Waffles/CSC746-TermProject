@@ -93,6 +93,7 @@ compute_forces(std::vector<Body>& bodies, Body i, int N)
 void 
 update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, const double dt, const int N)
 {
+   //#pragma omp parallel for
    for (int i = 0; i < N; i++)
    {
       for (int idx = 0; idx < DIM; idx++)
@@ -285,8 +286,8 @@ write_data_to_file(const std::vector<Body>& bodies, int N)
 int
 main (int ac, char *av[])
 {
-   if (ac < 2) {
-      std::cerr << "Usage: " << av[0] << " <number_of_bodies>" << std::endl;
+   if (ac < 4) {
+      std::cerr << "Usage: " << av[0] << " <number_of_bodies> <timestep_modifier> <final_time_modifier>" << std::endl;
       return 1;
    }
 
@@ -304,9 +305,11 @@ main (int ac, char *av[])
    }
 
    int N = std::stoi(av[1]);
+   int timestep_modifier = std::stoi(av[2]);
+   int final_time_modifier = std::stoi(av[3]);
 
-   int timestep = EARTH_DAY;
-   unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR); 
+   int timestep = EARTH_DAY * timestep_modifier;
+   unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR) * final_time_modifier; 
 
    std::vector<Body> bodies;
    if (N == -1)
