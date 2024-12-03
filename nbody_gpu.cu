@@ -97,7 +97,12 @@ compute_forces(Body* bodies, double* forces, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         dx[idx] = shared_positions[j * DIM + idx] - shared_positions[threadIdx.x * DIM + idx];
+         // Ensure j is within bounds
+         if (j >= blockDim.x) {
+            dx[idx] = bodies[j].position[idx] - shared_positions[threadIdx.x * DIM + idx];
+         } else {
+            dx[idx] = shared_positions[j * DIM + idx] - shared_positions[threadIdx.x * DIM + idx];
+         }
          r += dx[idx] * dx[idx];
       }
 
