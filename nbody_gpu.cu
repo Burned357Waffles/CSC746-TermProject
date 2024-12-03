@@ -71,6 +71,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void compute_forces(Body* bodies, double* forces, int N)
 {
+   extern __shared__ Body shared_bodies[];
    int i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i >= N) return;
 
