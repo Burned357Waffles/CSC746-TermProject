@@ -124,6 +124,8 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
 __global__ void 
 do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, double* forces)
 {
+   extern __shared__ double shared_forces[];
+
    int history_index = 1;
 
    int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -131,16 +133,22 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
    for(int t = 0; t < final_time; t+=timestep)
    {
-      memset(forces, 0, N * DIM * sizeof(double));
+      for (int i = threadIdx.x; i < N * DIM; i += blockDim.x)
+      {
+         shared_forces[i] = 0.0;
+      }
+      __syncthreads();
+
+      //memset(forces, 0, N * DIM * sizeof(double));
       for (int i = index; i < N; i += stride)
       { 
-         compute_forces(bodies, bodies[i], forces, N);
+         compute_forces(bodies, bodies[i], shared_forces, N);
       }
       __syncthreads();
 
       for (int i = index; i < N; i += stride)
       {
-         update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+         update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       }
       __syncthreads();
       history_index++;
@@ -150,25 +158,13 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 void launch_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
 {
    double* forces;
-   cudaError_t err = cudaMallocManaged(&forces, N * DIM * sizeof(double));
-   if (err != cudaSuccess) {
-      fprintf(stderr, "Failed to allocate managed memory for forces (error code %s)!\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-   }
+   gpuErrchkcudaMallocManaged(&forces, N * DIM * sizeof(double));
 
    int blockSize = 256;
    int numBlocks = (N + blockSize - 1) / blockSize;
    do_nBody_calculation<<<numBlocks, blockSize>>>(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, forces);
-   err = cudaGetLastError();
-   if (err != cudaSuccess) {
-      fprintf(stderr, "Failed to launch do_nBody_calculation kernel (error code %s)!\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-   }
-   err = cudaDeviceSynchronize();
-   if (err != cudaSuccess) {
-      fprintf(stderr, "Failed to synchronize (error code %s)!\n", cudaGetErrorString(err));
-      exit(EXIT_FAILURE);
-   }
+   gpuErrchk(cudaGetLastError());
+   gpuErrchk(cudaDeviceSynchronize());
 
    cudaFree(forces);
 }
@@ -352,7 +348,7 @@ main (int ac, char *av[])
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
    launch_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history);
-   
+
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
    std::chrono::duration<double> elapsed = end_time - start_time;
