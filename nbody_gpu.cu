@@ -28,8 +28,8 @@ struct Body
    double mass;
    vect_t velocity;
    vect_t position;
-
    
+   __device__ bool operator==(const Body& other) const
    {
       if (mass != other.mass)
          return false;
