@@ -141,29 +141,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
       for (int i = index; i < N; i += stride)
       { 
-         for (int j = 0; j < N; j++)
-         {
-            if (i == j) continue;
-
-            double dx[DIM] = {0.0, 0.0, 0.0};
-            double r = 0.0;
-            double r_norm = 0.0;
-
-            for (int idx = 0; idx < DIM; idx++)
-            {
-               dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
-               r += dx[idx] * dx[idx];
-            }
-
-            r_norm = sqrt(r);
-            if (r_norm == 0.0) continue;
-
-            for (int idx = 0; idx < DIM; idx++)
-            {
-               double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
-               atomicAdd(&shared_forces[i * DIM + idx], f);
-            }
-         }
+         compute_forces(bodies, bodies[i], shared_forces, N);
       }
       __syncthreads();
 
