@@ -142,21 +142,23 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
       //memset(forces, 0, N * DIM * sizeof(double));
       for (int i = index; i < N; i += stride)
       { 
-         if (i >= N) {
-         printf("Error: Out of bounds access in compute_forces at index %d\n", i);
-         return;
-    }
-         compute_forces(bodies, bodies[i], shared_forces, N);
+         if (i < N) {
+            compute_forces(bodies, bodies[i], shared_forces, N);
+         } else {
+            printf("Error: Out of bounds access in compute_forces at index %d\n", i);
+            return;
+         }
       }
       __syncthreads();
 
       for (int i = index; i < N; i += stride)
       {
-         if (i >= N) {
-        printf("Error: Out of bounds access in update_bodies at index %d\n", i);
-        return;
+         if (i < N) {
+            update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+         } else {
+            printf("Error: Out of bounds access in update_bodies at index %d\n", i);
+            return;
          }
-         update_bodies(bodies, shared_forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       }
       __syncthreads();
       history_index++;
