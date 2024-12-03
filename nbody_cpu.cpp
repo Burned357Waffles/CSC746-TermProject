@@ -16,12 +16,13 @@
 #include <math.h>
 #include <omp.h>  
 
+#define DIM 3
 
 struct Body
 {
    double mass;
-   double velocity[3];
-   double position[3];
+   double velocity[DIM];
+   double position[DIM];
    std::vector<double> velocity_history;
    std::vector<double> position_history;
 
@@ -53,20 +54,20 @@ std::vector<std::vector<double>> position_history;
 
 
 std::vector<double> 
-compute_forces(std::vector<Body>& bodies, Body i, int N, int dimensions)
+compute_forces(std::vector<Body>& bodies, Body i, int N)
 {
-   std::vector<double> total_force(dimensions, 0.0);
+   std::vector<double> total_force(DIM, 0.0);
 
    for(int j = 0; j < N; j++)
    {
       if(i == bodies[j])
          continue;
 
-      std::vector<double> dx(dimensions, 0.0);
+      std::vector<double> dx(DIM, 0.0);
       double r = 0.0;
       double r_norm = 0.0;
 
-      for (int idx = 0; idx < dimensions; idx++)
+      for (int idx = 0; idx < DIM; idx++)
       {
          dx[idx] = bodies[j].position[idx] - i.position[idx];
          r += dx[idx] * dx[idx];
@@ -76,7 +77,7 @@ compute_forces(std::vector<Body>& bodies, Body i, int N, int dimensions)
       if (r_norm == 0.0)
          continue;
 
-      for (int idx = 0; idx < dimensions; idx++)
+      for (int idx = 0; idx < DIM; idx++)
       {
          double f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] += f;
@@ -87,13 +88,13 @@ compute_forces(std::vector<Body>& bodies, Body i, int N, int dimensions)
 }
 
 void 
-update_bodies(std::vector<Body>& bodies, std::vector<double>& forces, double dt, int N, int dimensions)
+update_bodies(std::vector<Body>& bodies, const std::vector<double>& forces, const double dt, const int N)
 {
    for (int i = 0; i < N; i++)
    {
-      for (int idx = 0; idx < dimensions; idx++)
+      for (int idx = 0; idx < DIM; idx++)
       {
-         bodies[i].velocity[idx] += forces[i * dimensions + idx] / bodies[i].mass * dt;
+         bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
          bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
 
          //bodies[i].velocity_history.push_back(bodies[i].velocity[idx]);
@@ -107,23 +108,23 @@ update_bodies(std::vector<Body>& bodies, std::vector<double>& forces, double dt,
 }
 
 void 
-do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int timestep, unsigned int final_time)
+do_nBody_calculation(std::vector<Body>& bodies, int N, int timestep, unsigned int final_time)
 {
    for(int t = 0; t < final_time; t+=timestep)
    {
-      std::vector<double> forces(N * dimensions, 0.0);
+      std::vector<double> forces(N * DIM, 0.0);
 
       #pragma omp parallel for
       for(int i = 0; i < N; i++)
       {
-         std::vector<double> force = compute_forces(bodies, bodies[i], N, dimensions);
-         for (int idx = 0; idx < dimensions; idx++)
+         std::vector<double> force = compute_forces(bodies, bodies[i], N);
+         for (int idx = 0; idx < DIM; idx++)
          {
-            forces[i * dimensions + idx] = force[idx];
+            forces[i * DIM + idx] = force[idx];
          }
       }
 
-      update_bodies(bodies, forces, timestep, N, dimensions);
+      update_bodies(bodies, forces, timestep, N);
    }
 }
 
@@ -142,7 +143,7 @@ do_nBody_calculation(std::vector<Body>& bodies, int N, int dimensions, int times
 // 6/ Body 1 position: -1.77419e+09, 1.52822e+10, -2.62286e+10
 
 std::vector<Body>
-init_random_bodies(int dimensions, int N)
+init_random_bodies(int N)
 {
    std::vector<Body> bodies(N);
    std::random_device rd;
@@ -159,7 +160,7 @@ init_random_bodies(int dimensions, int N)
       //body.velocity.resize(dimensions);
       //body.position.resize(dimensions); // Resize the position vector
 
-      for (int j = 0; j < dimensions; j++)
+      for (int j = 0; j < DIM; j++)
       {
          body.velocity[j] = velocity_dist(gen);
          body.position[j] = position_dist(gen);
@@ -199,7 +200,7 @@ init_random_bodies(int dimensions, int N)
 }
 
 std::vector<Body>
-init_solar_system(int dimensions)
+init_solar_system()
 {
    std::vector<Body> bodies(9);
 
@@ -301,7 +302,6 @@ main (int ac, char *av[])
 
    int N = std::stoi(av[1]);
 
-   int dimensions = 3;
    int timestep = 60 * 60;
    unsigned int final_time = timestep * 24 * 365 * 300; 
 
@@ -309,15 +309,15 @@ main (int ac, char *av[])
    if (N == -1)
    {
       N = 9;
-      bodies = init_solar_system(dimensions);
+      bodies = init_solar_system();
    }
    else 
    {
-      bodies = init_random_bodies(dimensions, N);
+      bodies = init_random_bodies(N);
    }
 
-   velocity_history.resize(bodies.size() * dimensions);
-   position_history.resize(bodies.size() * dimensions);
+   velocity_history.resize(bodies.size() * DIM);
+   position_history.resize(bodies.size() * DIM);
    
    std::cout << "Number of bodies: " << N << std::endl;
 
@@ -326,7 +326,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(bodies, N, dimensions, timestep, final_time);
+   do_nBody_calculation(bodies, N, timestep, final_time);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
