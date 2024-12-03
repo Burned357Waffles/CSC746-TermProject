@@ -1,0 +1,27 @@
+bwat746@nid004178:~/CSC746-TermProject/build> OMP_NUM_THREADS=1 ./nbody_cpu 256 0 12 10
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 7.6156 
+Histories were not recorded
+bwat746@nid004178:~/CSC746-TermProject/build> OMP_NUM_THREADS=1 ./nbody_cpu 512 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 29.3164 
+Histories were not recorded
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=1 ./nbody_cpu 1024 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 117.138 
+Histories were not recorded
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=1 ./nbody_cpu 2048 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 2048
+Starting nbody calculation
+   Elapsed time is : 465.913 
+Histories were not recorded

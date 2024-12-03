@@ -1,0 +1,88 @@
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=16 ./nbody_cpu 256 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 16 total threads. 
+Hello world, I'm thread 2 out of 16 total threads. 
+Hello world, I'm thread 3 out of 16 total threads. 
+Hello world, I'm thread 8 out of 16 total threads. 
+Hello world, I'm thread 12 out of 16 total threads. 
+Hello world, I'm thread 4 out of 16 total threads. 
+Hello world, I'm thread 10 out of 16 total threads. 
+Hello world, I'm thread 14 out of 16 total threads. 
+Hello world, I'm thread 1 out of 16 total threads. 
+Hello world, I'm thread 7 out of 16 total threads. 
+Hello world, I'm thread 13 out of 16 total threads. 
+Hello world, I'm thread 6 out of 16 total threads. 
+Hello world, I'm thread 9 out of 16 total threads. 
+Hello world, I'm thread 5 out of 16 total threads. 
+Hello world, I'm thread 11 out of 16 total threads. 
+Hello world, I'm thread 15 out of 16 total threads. 
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 0.708514 
+Histories were not recorded
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=16 ./nbody_cpu 512 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 16 total threads. 
+Hello world, I'm thread 3 out of 16 total threads. 
+Hello world, I'm thread 14 out of 16 total threads. 
+Hello world, I'm thread 10 out of 16 total threads. 
+Hello world, I'm thread 12 out of 16 total threads. 
+Hello world, I'm thread 1 out of 16 total threads. 
+Hello world, I'm thread 4 out of 16 total threads. 
+Hello world, I'm thread 8 out of 16 total threads. 
+Hello world, I'm thread 9 out of 16 total threads. 
+Hello world, I'm thread 7 out of 16 total threads. 
+Hello world, I'm thread 5 out of 16 total threads. 
+Hello world, I'm thread 2 out of 16 total threads. 
+Hello world, I'm thread 6 out of 16 total threads. 
+Hello world, I'm thread 13 out of 16 total threads. 
+Hello world, I'm thread 15 out of 16 total threads. 
+Hello world, I'm thread 11 out of 16 total threads. 
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 2.29096 
+Histories were not recorded
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=16 ./nbody_cpu 1024 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 16 total threads. 
+Hello world, I'm thread 12 out of 16 total threads. 
+Hello world, I'm thread 3 out of 16 total threads. 
+Hello world, I'm thread 1 out of 16 total threads. 
+Hello world, I'm thread 5 out of 16 total threads. 
+Hello world, I'm thread 10 out of 16 total threads. 
+Hello world, I'm thread 14 out of 16 total threads. 
+Hello world, I'm thread 8 out of 16 total threads. 
+Hello world, I'm thread 2 out of 16 total threads. 
+Hello world, I'm thread 4 out of 16 total threads. 
+Hello world, I'm thread 13 out of 16 total threads. 
+Hello world, I'm thread 7 out of 16 total threads. 
+Hello world, I'm thread 11 out of 16 total threads. 
+Hello world, I'm thread 6 out of 16 total threads. 
+Hello world, I'm thread 9 out of 16 total threads. 
+Hello world, I'm thread 15 out of 16 total threads. 
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 8.35861 
+Histories were not recorded
+bwat746@nid004177:~/CSC746-TermProject/build> OMP_NUM_THREADS=16 ./nbody_cpu 2048 0 12 10
+Running without Marker API. Activate Marker API with -m on commandline.
+Hello world, I'm thread 0 out of 16 total threads. 
+Hello world, I'm thread 1 out of 16 total threads. 
+Hello world, I'm thread 13 out of 16 total threads. 
+Hello world, I'm thread 2 out of 16 total threads. 
+Hello world, I'm thread 10 out of 16 total threads. 
+Hello world, I'm thread 12 out of 16 total threads. 
+Hello world, I'm thread 3 out of 16 total threads. 
+Hello world, I'm thread 14 out of 16 total threads. 
+Hello world, I'm thread 8 out of 16 total threads. 
+Hello world, I'm thread 4 out of 16 total threads. 
+Hello world, I'm thread 6 out of 16 total threads. 
+Hello world, I'm thread 5 out of 16 total threads. 
+Hello world, I'm thread 11 out of 16 total threads. 
+Hello world, I'm thread 7 out of 16 total threads. 
+Hello world, I'm thread 15 out of 16 total threads. 
+Hello world, I'm thread 9 out of 16 total threads. 
+Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 31.5038 
+Histories were not recorded
