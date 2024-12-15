@@ -161,7 +161,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
       std::cout << "FINISHED COMPUTE" << std::endl;
 
-      update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      update_bodies<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       gpuErrchk(cudaDeviceSynchronize());
 
       history_index++;
