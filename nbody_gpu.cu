@@ -81,9 +81,6 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
       if (j < N) {  // Ensure j is within bounds
             shared_bodies[j] = bodies[j];
         }
-      else {
-         std::cout << "Error: j is out of bounds" << std::endl;
-      }
     }
     __syncthreads();
 
