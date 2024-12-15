@@ -130,12 +130,11 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    
    for(int t = 0; t < final_time; t+=timestep)
    {
-      cudaMemset(forces, 0, N * DIM * sizeof(double));
+      cudaMemsetAsync(forces, 0, N * DIM * sizeof(double));
 
       compute_forces(bodies, forces, N);
 
       update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
-      cudaDeviceSynchronize();
 
       history_index++;
    }
