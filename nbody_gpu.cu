@@ -71,15 +71,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void compute_forces(Body* bodies, double* forces, int N)
 {
+   extern __shared__ double shared_forces[];  // Declare shared memory for forces
    int i = blockIdx.x * blockDim.x + threadIdx.x;
+   
    if (i >= N) return;
 
    double total_force[DIM] = {0.0, 0.0, 0.0};
 
-   for(int j = 0; j < N; j++)
+   for (int j = 0; j < N; j++)
    {
-      if(i == j)
-         continue;
+      if (i == j) continue;
 
       double dx[DIM] = {0.0, 0.0, 0.0};
       double r = 0.0;
@@ -92,8 +93,7 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
       }
 
       r_norm = sqrt(r);
-      if (r_norm == 0.0)
-         continue;
+      if (r_norm == 0.0) continue;
 
       for (int idx = 0; idx < DIM; idx++)
       {
@@ -102,24 +102,45 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
       }
    }
 
+   // Store the total force in shared memory
    for (int idx = 0; idx < DIM; idx++)
    {
-      forces[i * DIM + idx] = total_force[idx];
+      shared_forces[i * DIM + idx] = total_force[idx];
+   }
+
+   __syncthreads();  // Synchronize threads within a block
+
+   // Write the result back to global memory
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      forces[i * DIM + idx] = shared_forces[i * DIM + idx];
    }
 }
 
 __global__ void update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
 {
+   extern __shared__ double shared_forces[];  // Declare shared memory for forces
    int i = blockIdx.x * blockDim.x + threadIdx.x;
+
    if (i >= N) return;
 
+   // Load forces into shared memory (you may already have it in global memory)
    for (int idx = 0; idx < DIM; idx++)
    {
-      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
+      shared_forces[i * DIM + idx] = forces[i * DIM + idx];
+   }
+
+   __syncthreads();  // Synchronize threads within a block
+
+   // Update body position and velocity based on forces
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      bodies[i].velocity[idx] += shared_forces[i * DIM + idx] / bodies[i].mass * dt;
       bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
    }
 
-   if (record_histories)   
+   // Optionally record history
+   if (record_histories)
    {
       for (int idx = 0; idx < DIM; idx++)
       {
@@ -135,16 +156,17 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    int history_index = 1;
    double* forces;
    gpuErrchk(cudaMalloc(&forces, N * DIM * sizeof(double)));
+
+   int shared_mem_size = N * sizeof(Body);
    
    for(int t = 0; t < final_time; t+=timestep)
    {
       gpuErrchk(cudaMemset(forces, 0, N * DIM * sizeof(double)));
 
+      
+      compute_forces<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, N);
 
-      compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
-      //gpuErrchk(cudaDeviceSynchronize());
-
-      update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      update_bodies<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       gpuErrchk(cudaDeviceSynchronize());
 
       history_index++;
