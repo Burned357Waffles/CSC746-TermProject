@@ -122,11 +122,9 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
 }
 
 __global__ void 
-do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
+do_nBody_calculation(Body* bodies, double* forces, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
 {
    int history_index = 1;
-   double* forces;
-   cudaMalloc(&forces, N * DIM * sizeof(double));
    
    for(int t = 0; t < final_time; t+=timestep)
    {
@@ -147,21 +145,24 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
       history_index++;
    }
-
-   cudaFree(forces);
 }
 
 void 
 nBody_kernel(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
 {
    Body* d_bodies;
+   double* forces;
    gpuErrchk(cudaMalloc(&d_bodies, N * sizeof(Body)));
    gpuErrchk(cudaMemcpy(d_bodies, bodies, N * sizeof(Body), cudaMemcpyHostToDevice));
 
-   do_nBody_calculation<<<num_blocks, threads_per_block>>>(d_bodies, N, timestep, final_time, record_histories, velocity_history, position_history);
+   cudaMalloc(&forces, N * DIM * sizeof(double));
+   //cudaMemset(forces, 0, N * DIM * sizeof(double));
+
+   do_nBody_calculation<<<num_blocks, threads_per_block>>>(d_bodies, forces, N, timestep, final_time, record_histories, velocity_history, position_history);
 
    gpuErrchk(cudaMemcpy(bodies, d_bodies, N * sizeof(Body), cudaMemcpyDeviceToHost));
    gpuErrchk(cudaFree(d_bodies));
+   gpuErrchk(cudaFree(forces));
 }
 
 // This function will initialize the bodies with 
