@@ -134,7 +134,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 {
    int history_index = 1;
    double* forces;
-   gpuErrchk(cudaMallocManaged(&forces, N * DIM * sizeof(double)));
+   gpuErrchk(cudaMalloc(&forces, N * DIM * sizeof(double)));
    
    for(int t = 0; t < final_time; t+=timestep)
    {
@@ -142,7 +142,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
 
       compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
-      gpuErrchk(cudaDeviceSynchronize());
+      //gpuErrchk(cudaDeviceSynchronize());
 
       update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       gpuErrchk(cudaDeviceSynchronize());
