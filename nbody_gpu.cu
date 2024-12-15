@@ -79,7 +79,7 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
         shared_bodies[threadIdx.x] = bodies[i];
     }
     
-    __syncthreads(); 
+    //__syncthreads(); 
 
    double total_force[DIM] = {0.0, 0.0, 0.0};
 
@@ -157,7 +157,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
       int shared_mem_size = N * sizeof(Body);
       compute_forces<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, N);
-      gpuErrchk(cudaDeviceSynchronize());
+      //gpuErrchk(cudaDeviceSynchronize());
 
       //std::cout << "FINISHED COMPUTE" << std::endl;
 
