@@ -119,18 +119,22 @@ __global__ void update_bodies(Body* bodies, const double* forces, const double d
    int i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i >= N) return;
 
+    extern __shared__ Body shared_bodies[];
+    shared_bodies[threadIdx.x] = bodies[i];
+    __syncthreads();
+
    for (int idx = 0; idx < DIM; idx++)
    {
-      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
-      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+      shared_bodies[i].velocity[idx] += forces[i * DIM + idx] / shared_bodies[i].mass * dt;
+      shared_bodies[i].position[idx] += shared_bodies[i].velocity[idx] * dt;
    }
 
    if (record_histories)   
    {
       for (int idx = 0; idx < DIM; idx++)
       {
-         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
-         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
+         velocity_history[history_index * N * DIM + i * DIM + idx] = shared_bodies[i].velocity[idx];
+         position_history[history_index * N * DIM + i * DIM + idx] = shared_bodies[i].position[idx];
       }
    }
 }
