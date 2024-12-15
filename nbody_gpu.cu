@@ -157,7 +157,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
 
 
       compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
-      //gpuErrchk(cudaDeviceSynchronize());
+      gpuErrchk(cudaDeviceSynchronize());
 
       update_bodies<<<num_blocks, threads_per_block>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       gpuErrchk(cudaDeviceSynchronize());
