@@ -140,7 +140,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
       }
 
       __syncthreads();
-      
+
       compute_forces(bodies, forces, N);
 
       update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
@@ -283,6 +283,11 @@ double* allocate_history(int N, int history_length)
    return history;
 }
 
+void free_history(double* history)
+{
+   gpuErrchk(cudaFree(history));
+}
+
 
 int
 main (int ac, char *av[])
@@ -348,8 +353,8 @@ main (int ac, char *av[])
    else
       std::cout << "Histories were not recorded" << std::endl;
    
-   gpuErrchk(cudaFree(velocity_history));
-   gpuErrchk(cudaFree(position_history));
+   free_history(velocity_history);
+   free_history(position_history);
    gpuErrchk(cudaFree(bodies));
 
    return 0;
