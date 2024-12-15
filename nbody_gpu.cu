@@ -71,10 +71,16 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__ void compute_forces(Body* bodies, double* forces, int N)
 {
+   extern __shared__ Body shared_bodies[];
    int i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i >= N) return;
 
    double total_force[DIM] = {0.0, 0.0, 0.0};
+
+   for (int j = threadIdx.x; j < N; j += blockDim.x) {
+        shared_bodies[j] = bodies[j];
+    }
+    __syncthreads();
 
    for(int j = 0; j < N; j++)
    {
@@ -87,7 +93,7 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
+         dx[idx] = shared_bodies[j].position[idx] - shared_bodies[i].position[idx];
          r += dx[idx] * dx[idx];
       }
 
@@ -97,7 +103,7 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
+         double f = (G * shared_bodies[i].mass * shared_bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
          total_force[idx] += f;
       }
    }
@@ -119,7 +125,7 @@ __global__ void update_bodies(Body* bodies, const double* forces, const double d
       bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
    }
 
-   if (record_histories)
+   if (record_histories)   
    {
       for (int idx = 0; idx < DIM; idx++)
       {
