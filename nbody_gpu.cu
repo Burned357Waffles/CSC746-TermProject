@@ -138,7 +138,7 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    
    for(int t = 0; t < final_time; t+=timestep)
    {
-      memset(forces, 0, N * DIM * sizeof(double));
+      gpuErrchk(cudaMemset(forces, 0, N * DIM * sizeof(double)));
 
 
       compute_forces<<<num_blocks, threads_per_block>>>(bodies, forces, N);
