@@ -1,12 +1,3 @@
-//
-// (C) 2021, E. Wes Bethel
-// Created code harness for the sobel filter
-// (C) 2024, Brandon Watanabe
-// Modified code to be nbody simulation
-//
-// Usage:
-//
-
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -69,18 +60,17 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-__global__ void compute_forces(Body* bodies, double* forces, int N)
+__device__ void compute_forces(Body* bodies, double* forces, int N)
 {
-   extern __shared__ double shared_forces[];  // Declare shared memory for forces
    int i = blockIdx.x * blockDim.x + threadIdx.x;
-   
    if (i >= N) return;
 
    double total_force[DIM] = {0.0, 0.0, 0.0};
 
-   for (int j = 0; j < N; j++)
+   for(int j = 0; j < N; j++)
    {
-      if (i == j) continue;
+      if(i == j)
+         continue;
 
       double dx[DIM] = {0.0, 0.0, 0.0};
       double r = 0.0;
@@ -93,7 +83,8 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
       }
 
       r_norm = sqrt(r);
-      if (r_norm == 0.0) continue;
+      if (r_norm == 0.0)
+         continue;
 
       for (int idx = 0; idx < DIM; idx++)
       {
@@ -102,45 +93,25 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
       }
    }
 
-   // Store the total force in shared memory
    for (int idx = 0; idx < DIM; idx++)
    {
-      shared_forces[i * DIM + idx] = total_force[idx];
-   }
-
-   __syncthreads();  // Synchronize threads within a block
-
-   // Write the result back to global memory
-   for (int idx = 0; idx < DIM; idx++)
-   {
-      forces[i * DIM + idx] = shared_forces[i * DIM + idx];
+      forces[i * DIM + idx] = total_force[idx];
    }
 }
 
-__global__ void update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
+__device__ void 
+update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
 {
-   extern __shared__ double shared_forces[];  // Declare shared memory for forces
    int i = blockIdx.x * blockDim.x + threadIdx.x;
-
    if (i >= N) return;
 
-   // Load forces into shared memory (you may already have it in global memory)
    for (int idx = 0; idx < DIM; idx++)
    {
-      shared_forces[i * DIM + idx] = forces[i * DIM + idx];
-   }
-
-   __syncthreads();  // Synchronize threads within a block
-
-   // Update body position and velocity based on forces
-   for (int idx = 0; idx < DIM; idx++)
-   {
-      bodies[i].velocity[idx] += shared_forces[i * DIM + idx] / bodies[i].mass * dt;
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
       bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
    }
 
-   // Optionally record history
-   if (record_histories)
+   if (record_histories)   
    {
       for (int idx = 0; idx < DIM; idx++)
       {
@@ -150,29 +121,39 @@ __global__ void update_bodies(Body* bodies, const double* forces, const double d
    }
 }
 
-void 
-do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
+__global__ void 
+do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history)
 {
    int history_index = 1;
    double* forces;
    gpuErrchk(cudaMalloc(&forces, N * DIM * sizeof(double)));
-
-   int shared_mem_size = N * sizeof(Body);
    
    for(int t = 0; t < final_time; t+=timestep)
    {
       gpuErrchk(cudaMemset(forces, 0, N * DIM * sizeof(double)));
 
-      
-      compute_forces<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, N);
+      compute_forces(bodies, forces, N);
 
-      update_bodies<<<num_blocks, threads_per_block, shared_mem_size>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
       gpuErrchk(cudaDeviceSynchronize());
 
       history_index++;
    }
 
    gpuErrchk(cudaFree(forces));
+}
+
+void 
+nBody_kernel(Body* bodies, const int N, const int timestep, const unsigned long long final_time, const bool record_histories, double* velocity_history, double* position_history, int threads_per_block, int num_blocks)
+{
+   Body* d_bodies;
+   gpuErrchk(cudaMalloc(&d_bodies, N * sizeof(Body)));
+   gpuErrchk(cudaMemcpy(d_bodies, bodies, N * sizeof(Body), cudaMemcpyHostToDevice));
+
+   do_nBody_calculation<<<num_blocks, threads_per_block>>>(d_bodies, N, timestep, final_time, record_histories, velocity_history, position_history);
+
+   gpuErrchk(cudaMemcpy(bodies, d_bodies, N * sizeof(Body), cudaMemcpyDeviceToHost));
+   gpuErrchk(cudaFree(d_bodies));
 }
 
 // This function will initialize the bodies with 
@@ -294,10 +275,6 @@ double* allocate_history(int N, int history_length)
    return history;
 }
 
-void free_history(double* history)
-{
-   gpuErrchk(cudaFree(history));
-}
 
 int
 main (int ac, char *av[])
@@ -306,8 +283,6 @@ main (int ac, char *av[])
       std::cerr << "Usage: " << av[0] << " <number_of_bodies> <record_histories> <timestep_modifier> <final_time_modifier> <threads_per_block> <num_blocks>" << std::endl;
       return 1;
    }
-
-   LIKWID_MARKER_INIT;
 
    int N = std::stoi(av[1]);
    bool record_histories = std::stoi(av[2]);
@@ -353,7 +328,7 @@ main (int ac, char *av[])
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start_time = std::chrono::high_resolution_clock::now();
 
-   do_nBody_calculation(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, threads_per_block, num_blocks);
+   nBody_kernel(bodies, N, timestep, final_time, record_histories, velocity_history, position_history, threads_per_block, num_blocks);
 
    std::chrono::time_point<std::chrono::high_resolution_clock> end_time = std::chrono::high_resolution_clock::now();
 
@@ -364,12 +339,10 @@ main (int ac, char *av[])
       write_data_to_file(bodies, N, timestep, final_time, velocity_history, position_history);
    else
       std::cout << "Histories were not recorded" << std::endl;
-
-   free_history(velocity_history);
-   free_history(position_history);
+   
+   gpuErrchk(cudaFree(velocity_history));
+   gpuErrchk(cudaFree(position_history));
    gpuErrchk(cudaFree(bodies));
-
-   LIKWID_MARKER_CLOSE;
 
    return 0;
 }
