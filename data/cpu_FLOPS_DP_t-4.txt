@@ -1,0 +1,286 @@
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-3 ./nbody_cpu 256 0 1 10
+--------------------------------------------------------------------------------
+CPU name:	AMD EPYC 7763 64-Core Processor                
+CPU type:	AMD K19 (Zen3) architecture
+CPU clock:	2.45 GHz
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 0 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 0 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 1 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 1 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 2 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 2 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 3 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 3 failed: Permission denied
+--------------------------------------------------------------------------------
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 0 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 0 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 1 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 1 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 2 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 2 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event ACTUAL_CPU_CLOCK on CPU 3 failed: Permission denied
+ERROR - [./src/includes/perfmon_perfevent.h:perfmon_setupCountersThread_perfevent:891] Permission denied.
+Setup of event MAX_CPU_CLOCK on CPU 3 failed: Permission denied
+Hello world, I'm thread 0 out of 4 total threads. 
+Hello world, I'm thread 1 out of 4 total threads. 
+Hello world, I'm thread 3 out of 4 total threads. 
+Hello world, I'm thread 2 out of 4 total threads. 
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 2.81704 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+------------+------------+------------+
+|    Region Info    | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++-------------------+------------+------------+------------+------------+
+| RDTSC Runtime [s] |   0.925383 |   0.985363 |   0.979176 |   0.982927 |
+|     call count    |       3650 |       3650 |       3650 |       3650 |
++-------------------+------------+------------+------------+------------+
+
++---------------------------+---------+-------------+-------------+-------------+-------------+
+|           Event           | Counter |  HWThread 0 |  HWThread 1 |  HWThread 2 |  HWThread 3 |
++---------------------------+---------+-------------+-------------+-------------+-------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |           0 |           0 |           0 |           0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |           0 |           0 |           0 |           0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 12414270000 | 12612060000 | 12608320000 | 12610960000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  3257984000 |  3462276000 |  3442491000 |  3454882000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  1548804000 |  1548804000 |  1548804000 |  1548804000 |
+|           MERGE           |   PMC3  |           0 |           0 |           0 |           0 |
++---------------------------+---------+-------------+-------------+-------------+-------------+
+
++--------------------------------+---------+-------------+-------------+-------------+-------------+
+|              Event             | Counter |     Sum     |     Min     |     Max     |     Avg     |
++--------------------------------+---------+-------------+-------------+-------------+-------------+
+|      ACTUAL_CPU_CLOCK STAT     |  FIXC1  |           0 |           0 |           0 |           0 |
+|       MAX_CPU_CLOCK STAT       |  FIXC2  |           0 |           0 |           0 |           0 |
+|    RETIRED_INSTRUCTIONS STAT   |   PMC0  | 50245610000 | 12414270000 | 12612060000 | 12561402500 |
+|    CPU_CLOCKS_UNHALTED STAT    |   PMC1  | 13617633000 |  3257984000 |  3462276000 |  3404408250 |
+| RETIRED_SSE_AVX_FLOPS_ALL STAT |   PMC2  |  6195216000 |  1548804000 |  1548804000 |  1548804000 |
+|           MERGE STAT           |   PMC3  |           0 |           0 |           0 |           0 |
++--------------------------------+---------+-------------+-------------+-------------+-------------+
+
++----------------------+------------+------------+------------+------------+
+|        Metric        | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++----------------------+------------+------------+------------+------------+
+|  Runtime (RDTSC) [s] |     0.9254 |     0.9854 |     0.9792 |     0.9829 |
+| Runtime unhalted [s] |          0 |          0 |          0 |          0 |
+|      Clock [MHz]     |      -     |      -     |      -     |      -     |
+|          CPI         |     0.2624 |     0.2745 |     0.2730 |     0.2740 |
+|     DP [MFLOP/s]     |  1673.6897 |  1571.8108 |  1581.7417 |  1575.7062 |
++----------------------+------------+------------+------------+------------+
+
++---------------------------+-----------+-----------+-----------+-----------+
+|           Metric          |    Sum    |    Min    |    Max    |    Avg    |
++---------------------------+-----------+-----------+-----------+-----------+
+|  Runtime (RDTSC) [s] STAT |    3.8729 |    0.9254 |    0.9854 |    0.9682 |
+| Runtime unhalted [s] STAT |         0 |         0 |         0 |         0 |
+|      Clock [MHz] STAT     |         0 |    inf    |         0 |         0 |
+|          CPI STAT         |    1.0839 |    0.2624 |    0.2745 |    0.2710 |
+|     DP [MFLOP/s] STAT     | 6402.9484 | 1571.8108 | 1673.6897 | 1600.7371 |
++---------------------------+-----------+-----------+-----------+-----------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-3 ./nbody_cpu 512 0 1 10
+
+Hello world, I'm thread 0 out of 4 total threads. 
+Hello world, I'm thread 2 out of 4 total threads. 
+Hello world, I'm thread 3 out of 4 total threads. 
+Hello world, I'm thread 1 out of 4 total threads. 
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 5.56505 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+------------+------------+------------+
+|    Region Info    | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++-------------------+------------+------------+------------+------------+
+| RDTSC Runtime [s] |   3.666491 |   3.732976 |   3.723076 |   3.725369 |
+|     call count    |       3650 |       3650 |       3650 |       3650 |
++-------------------+------------+------------+------------+------------+
+
++---------------------------+---------+-------------+-------------+-------------+-------------+
+|           Event           | Counter |  HWThread 0 |  HWThread 1 |  HWThread 2 |  HWThread 3 |
++---------------------------+---------+-------------+-------------+-------------+-------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |           0 |           0 |           0 |           0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |           0 |           0 |           0 |           0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 49570610000 | 50301090000 | 50294100000 | 50298420000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  | 12874660000 | 13096900000 | 13067780000 | 13075910000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  6207256000 |  6207256000 |  6207256000 |  6207256000 |
+|           MERGE           |   PMC3  |           0 |           0 |           0 |           0 |
++---------------------------+---------+-------------+-------------+-------------+-------------+
+
++--------------------------------+---------+--------------+-------------+-------------+-------------+
+|              Event             | Counter |      Sum     |     Min     |     Max     |     Avg     |
++--------------------------------+---------+--------------+-------------+-------------+-------------+
+|      ACTUAL_CPU_CLOCK STAT     |  FIXC1  |            0 |           0 |           0 |           0 |
+|       MAX_CPU_CLOCK STAT       |  FIXC2  |            0 |           0 |           0 |           0 |
+|    RETIRED_INSTRUCTIONS STAT   |   PMC0  | 200464220000 | 49570610000 | 50301090000 | 50116055000 |
+|    CPU_CLOCKS_UNHALTED STAT    |   PMC1  |  52115250000 | 12874660000 | 13096900000 | 13028812500 |
+| RETIRED_SSE_AVX_FLOPS_ALL STAT |   PMC2  |  24829024000 |  6207256000 |  6207256000 |  6207256000 |
+|           MERGE STAT           |   PMC3  |            0 |           0 |           0 |           0 |
++--------------------------------+---------+--------------+-------------+-------------+-------------+
+
++----------------------+------------+------------+------------+------------+
+|        Metric        | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++----------------------+------------+------------+------------+------------+
+|  Runtime (RDTSC) [s] |     3.6665 |     3.7330 |     3.7231 |     3.7254 |
+| Runtime unhalted [s] |          0 |          0 |          0 |          0 |
+|      Clock [MHz]     |      -     |      -     |      -     |      -     |
+|          CPI         |     0.2597 |     0.2604 |     0.2598 |     0.2600 |
+|     DP [MFLOP/s]     |  1692.9691 |  1662.8170 |  1667.2386 |  1666.2124 |
++----------------------+------------+------------+------------+------------+
+
++---------------------------+-----------+-----------+-----------+-----------+
+|           Metric          |    Sum    |    Min    |    Max    |    Avg    |
++---------------------------+-----------+-----------+-----------+-----------+
+|  Runtime (RDTSC) [s] STAT |   14.8480 |    3.6665 |    3.7330 |    3.7120 |
+| Runtime unhalted [s] STAT |         0 |         0 |         0 |         0 |
+|      Clock [MHz] STAT     |         0 |    inf    |         0 |         0 |
+|          CPI STAT         |    1.0399 |    0.2597 |    0.2604 |    0.2600 |
+|     DP [MFLOP/s] STAT     | 6689.2371 | 1662.8170 | 1692.9691 | 1672.3093 |
++---------------------------+-----------+-----------+-----------+-----------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-3 ./nbody_cpu 1024 0 1 10
+--------------------------------------------------------------------------------
+
+Hello world, I'm thread 0 out of 4 total threads. 
+Hello world, I'm thread 1 out of 4 total threads. 
+Hello world, I'm thread 2 out of 4 total threads. 
+Hello world, I'm thread 3 out of 4 total threads. 
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 16.8901 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+------------+------------+------------+
+|    Region Info    | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++-------------------+------------+------------+------------+------------+
+| RDTSC Runtime [s] |  14.980060 |  15.051830 |  15.037800 |  15.042230 |
+|     call count    |       3650 |       3650 |       3650 |       3650 |
++-------------------+------------+------------+------------+------------+
+
++---------------------------+---------+--------------+--------------+--------------+--------------+
+|           Event           | Counter |  HWThread 0  |  HWThread 1  |  HWThread 2  |  HWThread 3  |
++---------------------------+---------+--------------+--------------+--------------+--------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |            0 |            0 |            0 |            0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |            0 |            0 |            0 |            0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 198148800000 | 201145500000 | 201136900000 | 201141300000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  52527570000 |  52786740000 |  52741990000 |  52757240000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  24853210000 |  24853210000 |  24853210000 |  24853210000 |
+|           MERGE           |   PMC3  |            0 |            0 |            0 |            0 |
++---------------------------+---------+--------------+--------------+--------------+--------------+
+
++--------------------------------+---------+--------------+--------------+--------------+--------------+
+|              Event             | Counter |      Sum     |      Min     |      Max     |      Avg     |
++--------------------------------+---------+--------------+--------------+--------------+--------------+
+|      ACTUAL_CPU_CLOCK STAT     |  FIXC1  |            0 |            0 |            0 |            0 |
+|       MAX_CPU_CLOCK STAT       |  FIXC2  |            0 |            0 |            0 |            0 |
+|    RETIRED_INSTRUCTIONS STAT   |   PMC0  | 801572500000 | 198148800000 | 201145500000 | 200393125000 |
+|    CPU_CLOCKS_UNHALTED STAT    |   PMC1  | 210813540000 |  52527570000 |  52786740000 |  52703385000 |
+| RETIRED_SSE_AVX_FLOPS_ALL STAT |   PMC2  |  99412840000 |  24853210000 |  24853210000 |  24853210000 |
+|           MERGE STAT           |   PMC3  |            0 |            0 |            0 |            0 |
++--------------------------------+---------+--------------+--------------+--------------+--------------+
+
++----------------------+------------+------------+------------+------------+
+|        Metric        | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++----------------------+------------+------------+------------+------------+
+|  Runtime (RDTSC) [s] |    14.9801 |    15.0518 |    15.0378 |    15.0422 |
+| Runtime unhalted [s] |          0 |          0 |          0 |          0 |
+|      Clock [MHz]     |      -     |      -     |      -     |      -     |
+|          CPI         |     0.2651 |     0.2624 |     0.2622 |     0.2623 |
+|     DP [MFLOP/s]     |  1659.0861 |  1651.1753 |  1652.7158 |  1652.2291 |
++----------------------+------------+------------+------------+------------+
+
++---------------------------+-----------+-----------+-----------+-----------+
+|           Metric          |    Sum    |    Min    |    Max    |    Avg    |
++---------------------------+-----------+-----------+-----------+-----------+
+|  Runtime (RDTSC) [s] STAT |   60.1119 |   14.9801 |   15.0518 |   15.0280 |
+| Runtime unhalted [s] STAT |         0 |         0 |         0 |         0 |
+|      Clock [MHz] STAT     |         0 |    inf    |         0 |         0 |
+|          CPI STAT         |    1.0520 |    0.2622 |    0.2651 |    0.2630 |
+|     DP [MFLOP/s] STAT     | 6615.2063 | 1651.1753 | 1659.0861 | 1653.8016 |
++---------------------------+-----------+-----------+-----------+-----------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-3 ./nbody_cpu 2048 0 1 10
+
+Hello world, I'm thread 0 out of 4 total threads. 
+Hello world, I'm thread 1 out of 4 total threads. 
+Hello world, I'm thread 3 out of 4 total threads. 
+Hello world, I'm thread 2 out of 4 total threads. 
+Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 60.769 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+------------+------------+------------+
+|    Region Info    | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++-------------------+------------+------------+------------+------------+
+| RDTSC Runtime [s] |  58.812930 |  58.887690 |  58.876430 |  58.877600 |
+|     call count    |       3650 |       3650 |       3650 |       3650 |
++-------------------+------------+------------+------------+------------+
+
++---------------------------+---------+--------------+--------------+--------------+--------------+
+|           Event           | Counter |  HWThread 0  |  HWThread 1  |  HWThread 2  |  HWThread 3  |
++---------------------------+---------+--------------+--------------+--------------+--------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |            0 |            0 |            0 |            0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |            0 |            0 |            0 |            0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 792534100000 | 803945900000 | 803918000000 | 803913500000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  | 205997500000 | 206228600000 | 206301300000 | 206258800000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  99461310000 |  99461310000 |  99461310000 |  99461310000 |
+|           MERGE           |   PMC3  |            0 |            0 |            0 |            0 |
++---------------------------+---------+--------------+--------------+--------------+--------------+
+
++--------------------------------+---------+---------------+--------------+--------------+--------------+
+|              Event             | Counter |      Sum      |      Min     |      Max     |      Avg     |
++--------------------------------+---------+---------------+--------------+--------------+--------------+
+|      ACTUAL_CPU_CLOCK STAT     |  FIXC1  |             0 |            0 |            0 |            0 |
+|       MAX_CPU_CLOCK STAT       |  FIXC2  |             0 |            0 |            0 |            0 |
+|    RETIRED_INSTRUCTIONS STAT   |   PMC0  | 3204311500000 | 792534100000 | 803945900000 | 801077875000 |
+|    CPU_CLOCKS_UNHALTED STAT    |   PMC1  |  824786200000 | 205997500000 | 206301300000 | 206196550000 |
+| RETIRED_SSE_AVX_FLOPS_ALL STAT |   PMC2  |  397845240000 |  99461310000 |  99461310000 |  99461310000 |
+|           MERGE STAT           |   PMC3  |             0 |            0 |            0 |            0 |
++--------------------------------+---------+---------------+--------------+--------------+--------------+
+
++----------------------+------------+------------+------------+------------+
+|        Metric        | HWThread 0 | HWThread 1 | HWThread 2 | HWThread 3 |
++----------------------+------------+------------+------------+------------+
+|  Runtime (RDTSC) [s] |    58.8129 |    58.8877 |    58.8764 |    58.8776 |
+| Runtime unhalted [s] |          0 |          0 |          0 |          0 |
+|      Clock [MHz]     |      -     |      -     |      -     |      -     |
+|          CPI         |     0.2599 |     0.2565 |     0.2566 |     0.2566 |
+|     DP [MFLOP/s]     |  1691.1470 |  1689.0000 |  1689.3230 |  1689.2895 |
++----------------------+------------+------------+------------+------------+
+
++---------------------------+-----------+---------+-----------+-----------+
+|           Metric          |    Sum    |   Min   |    Max    |    Avg    |
++---------------------------+-----------+---------+-----------+-----------+
+|  Runtime (RDTSC) [s] STAT |  235.4546 | 58.8129 |   58.8877 |   58.8636 |
+| Runtime unhalted [s] STAT |         0 |       0 |         0 |         0 |
+|      Clock [MHz] STAT     |         0 |   inf   |         0 |         0 |
+|          CPI STAT         |    1.0296 |  0.2565 |    0.2599 |    0.2574 |
+|     DP [MFLOP/s] STAT     | 6758.7595 |    1689 | 1691.1470 | 1689.6899 |
++---------------------------+-----------+---------+-----------+-----------+

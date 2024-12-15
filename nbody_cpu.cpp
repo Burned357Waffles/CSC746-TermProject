@@ -167,7 +167,7 @@ init_random_bodies(const int N)
    std::random_device rd;
    std::mt19937 gen(rd());
    //std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, ASTEROID_MASS);
-   std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, SOLAR_MASS);
+   std::uniform_real_distribution<double> mass_dist(ASTEROID_MASS, SOLAR_MASS / 2);
    std::uniform_real_distribution<double> velocity_dist(-50.0e3, 50.0e3); // Velocity in m/s
    std::uniform_real_distribution<double> position_dist(-AU, AU);
 
@@ -184,7 +184,7 @@ init_random_bodies(const int N)
       bodies[i] = body;
    }
 
-  /*
+  
    bodies[0].mass = SOLAR_MASS;  
    bodies[0].velocity[0] = 0;
    bodies[0].velocity[1] = 0;
@@ -193,6 +193,7 @@ init_random_bodies(const int N)
    bodies[0].position[1] = 0;
    bodies[0].position[2] = 0;
 
+/*
    bodies[1].mass = ASTEROID_MASS;
    bodies[1].velocity[0] = 22365.5;
    bodies[1].velocity[1] = 24955.3;
@@ -327,7 +328,7 @@ main (int ac, char *av[])
    int timestep_modifier = std::stoi(av[3]);
    int final_time_modifier = std::stoi(av[4]);
 
-   int timestep = HOUR * timestep_modifier;
+   int timestep = EARTH_DAY * timestep_modifier;
    unsigned long long final_time = static_cast<unsigned long long>(EARTH_YEAR) * final_time_modifier; 
 
    Body* bodies = nullptr;

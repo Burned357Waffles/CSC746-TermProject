@@ -1,0 +1,158 @@
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-0 ./nbody_cpu 256 0 1 10
+--------------------------------------------------------------------------------
+CPU name:	AMD EPYC 7763 64-Core Processor                
+CPU type:	AMD K19 (Zen3) architecture
+CPU clock:	2.45 GHz
+
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 3.96378 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] |   3.663024 |
+|     call count    |       3650 |
++-------------------+------------+
+
++---------------------------+---------+-------------+
+|           Event           | Counter |  HWThread 0 |
++---------------------------+---------+-------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |           0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |           0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 49601100000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  | 12845060000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  6195108000 |
+|           MERGE           |   PMC3  |           0 |
++---------------------------+---------+-------------+
+
++----------------------+------------+
+|        Metric        | HWThread 0 |
++----------------------+------------+
+|  Runtime (RDTSC) [s] |     3.6630 |
+| Runtime unhalted [s] |          0 |
+|      Clock [MHz]     |      -     |
+|          CPI         |     0.2590 |
+|     DP [MFLOP/s]     |  1691.2551 |
++----------------------+------------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-0 ./nbody_cpu 512 0 1 10
+
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 14.9022 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] |  14.598630 |
+|     call count    |       3650 |
++-------------------+------------+
+
++---------------------------+---------+--------------+
+|           Event           | Counter |  HWThread 0  |
++---------------------------+---------+--------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |            0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |            0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 198220200000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  51216520000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  24828910000 |
+|           MERGE           |   PMC3  |            0 |
++---------------------------+---------+--------------+
+
++----------------------+------------+
+|        Metric        | HWThread 0 |
++----------------------+------------+
+|  Runtime (RDTSC) [s] |    14.5986 |
+| Runtime unhalted [s] |          0 |
+|      Clock [MHz]     |      -     |
+|          CPI         |     0.2584 |
+|     DP [MFLOP/s]     |  1700.7699 |
++----------------------+------------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-0 ./nbody_cpu 1024 0 1 10
+
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 58.8191 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] |  58.506540 |
+|     call count    |       3650 |
++-------------------+------------+
+
++---------------------------+---------+--------------+
+|           Event           | Counter |  HWThread 0  |
++---------------------------+---------+--------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |            0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |            0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 792552800000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  | 204773500000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  99412720000 |
+|           MERGE           |   PMC3  |            0 |
++---------------------------+---------+--------------+
+
++----------------------+------------+
+|        Metric        | HWThread 0 |
++----------------------+------------+
+|  Runtime (RDTSC) [s] |    58.5065 |
+| Runtime unhalted [s] |          0 |
+|      Clock [MHz]     |      -     |
+|          CPI         |     0.2584 |
+|     DP [MFLOP/s]     |  1699.1728 |
++----------------------+------------+
+
+#############################################################################################################################
+
+bwat746@nid004282:~/CSC746-TermProject/build> likwid-perfctr -m -g FLOPS_DP -C N:0-0 ./nbody_cpu 2048 0 1 10
+
+Hello world, I'm thread 0 out of 1 total threads. 
+Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 233.656 
+Histories were not recorded
+--------------------------------------------------------------------------------
+Region NBODY_Region, Group 1: FLOPS_DP
++-------------------+------------+
+|    Region Info    | HWThread 0 |
++-------------------+------------+
+| RDTSC Runtime [s] | 233.328700 |
+|     call count    |       3650 |
++-------------------+------------+
+
++---------------------------+---------+---------------+
+|           Event           | Counter |   HWThread 0  |
++---------------------------+---------+---------------+
+|      ACTUAL_CPU_CLOCK     |  FIXC1  |             0 |
+|       MAX_CPU_CLOCK       |  FIXC2  |             0 |
+|    RETIRED_INSTRUCTIONS   |   PMC0  | 3169595000000 |
+|    CPU_CLOCKS_UNHALTED    |   PMC1  |  817466000000 |
+| RETIRED_SSE_AVX_FLOPS_ALL |   PMC2  |  397845100000 |
+|           MERGE           |   PMC3  |             0 |
++---------------------------+---------+---------------+
+
++----------------------+------------+
+|        Metric        | HWThread 0 |
++----------------------+------------+
+|  Runtime (RDTSC) [s] |   233.3287 |
+| Runtime unhalted [s] |          0 |
+|      Clock [MHz]     |      -     |
+|          CPI         |     0.2579 |
+|     DP [MFLOP/s]     |  1705.0843 |
++----------------------+------------+
+

@@ -347,7 +347,6 @@ main (int ac, char *av[])
    free_history(position_history);
    gpuErrchk(cudaFree(bodies));
 
-   LIKWID_MARKER_CLOSE;
 
    return 0;
 }
