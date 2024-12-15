@@ -137,6 +137,11 @@ __global__ void update_bodies(Body* bodies, const double* forces, const double d
          position_history[history_index * N * DIM + i * DIM + idx] = shared_bodies[i].position[idx];
       }
    }
+
+    __syncthreads(); // Ensure all updates are done before writing back
+
+    // Write updated body back to global memory
+    bodies[i] = shared_bodies[threadIdx.x];
 }
 
 void 
