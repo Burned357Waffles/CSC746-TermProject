@@ -130,8 +130,17 @@ do_nBody_calculation(Body* bodies, const int N, const int timestep, const unsign
    
    for(int t = 0; t < final_time; t+=timestep)
    {
-      cudaMemsetAsync(forces, 0, N * DIM * sizeof(double));
+      int i = blockIdx.x * blockDim.x + threadIdx.x;
+      if (i < N)
+      {
+         for (int j = 0; j < DIM; j++)
+         {
+               forces[i * DIM + j] = 0.0; // Set forces to zero for the current body
+         }
+      }
 
+      __syncthreads();
+      
       compute_forces(bodies, forces, N);
 
       update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
