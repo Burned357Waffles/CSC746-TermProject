@@ -95,7 +95,7 @@ __device__ void compute_forces(Body* bodies, double* forces, int N)
 
    for (int idx = 0; idx < DIM; idx++)
    {
-      forces[idx * N + i] = total_force[idx];
+      forces[i * DIM + idx] = total_force[idx];
    }
 }
 
@@ -107,7 +107,7 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
 
    for (int idx = 0; idx < DIM; idx++)
    {
-      bodies[i].velocity[idx] += forces[idx * N + i] / bodies[i].mass * dt;
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
       bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
    }
 
@@ -115,8 +115,8 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
    {
       for (int idx = 0; idx < DIM; idx++)
       {
-         velocity_history[history_index * N * DIM + idx * N + i] = bodies[i].velocity[idx];
-         position_history[history_index * N * DIM + idx * N + i] = bodies[i].position[idx];
+         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
+         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
       }
    }
 }
