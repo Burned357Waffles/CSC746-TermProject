@@ -78,7 +78,12 @@ __global__ void compute_forces(Body* bodies, double* forces, int N)
    double total_force[DIM] = {0.0, 0.0, 0.0};
 
    for (int j = threadIdx.x; j < N; j += blockDim.x) {
-        shared_bodies[j] = bodies[j];
+      if (j < N) {  // Ensure j is within bounds
+            shared_bodies[j] = bodies[j];
+        }
+      else {
+         std::cerr << "Error: j is out of bounds" << std::endl;
+      }
     }
     __syncthreads();
 
@@ -119,29 +124,20 @@ __global__ void update_bodies(Body* bodies, const double* forces, const double d
    int i = blockIdx.x * blockDim.x + threadIdx.x;
    if (i >= N) return;
 
-    extern __shared__ Body shared_bodies[];
-    shared_bodies[threadIdx.x] = bodies[i];
-    __syncthreads();
-
    for (int idx = 0; idx < DIM; idx++)
    {
-      shared_bodies[i].velocity[idx] += forces[i * DIM + idx] / shared_bodies[i].mass * dt;
-      shared_bodies[i].position[idx] += shared_bodies[i].velocity[idx] * dt;
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
+      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
    }
 
    if (record_histories)   
    {
       for (int idx = 0; idx < DIM; idx++)
       {
-         velocity_history[history_index * N * DIM + i * DIM + idx] = shared_bodies[i].velocity[idx];
-         position_history[history_index * N * DIM + i * DIM + idx] = shared_bodies[i].position[idx];
+         velocity_history[history_index * N * DIM + i * DIM + idx] = bodies[i].velocity[idx];
+         position_history[history_index * N * DIM + i * DIM + idx] = bodies[i].position[idx];
       }
    }
-
-    __syncthreads(); // Ensure all updates are done before writing back
-
-    // Write updated body back to global memory
-    bodies[i] = shared_bodies[threadIdx.x];
 }
 
 void 
