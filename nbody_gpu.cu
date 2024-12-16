@@ -93,7 +93,7 @@ __global__ void compute_forces_kernel(Body* bodies, double* forces, int N)
    compute_forces(bodies, forces, N, i, j);
 }
 
-__device__ void 
+__global__ void 
 update_bodies(Body* bodies, const double* forces, const double dt, const int N, const bool record_histories, const int history_index, double* velocity_history, double* position_history)
 {
    int i = blockIdx.x * blockDim.x + threadIdx.x;
