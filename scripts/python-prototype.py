@@ -1,3 +1,9 @@
+"""
+
+THIS FILE IS A PYTHON PROTOTYPE OF THE NBODY PROBLEM. THE FULL SOLUTION IS IN THE C++ OR CUDA FILE.
+
+"""
+
 import math
 import random
 import time

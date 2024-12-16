@@ -37,6 +37,15 @@ z = df['z']
 fig = plt.figure(figsize=(20, 10))
 ax = plt.axes(projection='3d')
 
+# Set background color to black
+ax.set_facecolor('black')
+fig.patch.set_facecolor('black')
+
+# Set grid color to white
+ax.xaxis._axinfo['grid'].update(color='white')
+ax.yaxis._axinfo['grid'].update(color='white')
+ax.zaxis._axinfo['grid'].update(color='white')
+
 unique_bodies = b.unique()
 colors = plt.cm.jet(np.linspace(0, 1, len(unique_bodies)))[::-1]
 
@@ -52,13 +61,25 @@ for body in unique_bodies:
 max_val = max(x.max(), y.max(), z.max())
 min_val = min(x.min(), y.min(), z.min())
 
+zooming_max = max_val * 0.7
+zooming_min = min_val * 0.7
+
+ax.set_xlim([zooming_min, zooming_max])
+ax.set_ylim([zooming_min, zooming_max])
+ax.set_zlim([zooming_min, zooming_max])
+
+"""
 ax.set_xlim([min_val, max_val])
 ax.set_ylim([min_val, max_val])
 ax.set_zlim([min_val, max_val])
+"""
+ax.set_xlabel('X axis', color='white')
+ax.set_ylabel('Y axis', color='white')
+ax.set_zlabel('Z axis', color='white')
 
-ax.set_xlabel('X axis')
-ax.set_ylabel('Y axis')
-ax.set_zlabel('Z axis')
+ax.tick_params(axis='x', colors='white')
+ax.tick_params(axis='y', colors='white')
+ax.tick_params(axis='z', colors='white')
 
 ax.view_init(elev=10., azim=45)
 
@@ -77,11 +98,16 @@ def update(frame):
 
     return scatters + lines
 
-
+# TO WRITE TO GIF UNCOMMENT THIS LINE
 #frames = min(len(df) // len(unique_bodies), 1000)
+
+# TO WRITE TO GIF COMMENT THIS LINE
 frames = len(df) // len(unique_bodies)
+
 ani = FuncAnimation(fig, update, frames=frames, interval=10, blit=False)
 
-#ani.save('nbody_animation.gif', writer=PillowWriter(fps=30))
+# TO WRITE TO GIF UNCOMMENT THIS LINE
+#ani.save('nbody_animation-3-bodies.gif', writer=PillowWriter(fps=30))
 
+# TO WRITE TO GIF COMMENT THIS LINE
 plt.show()

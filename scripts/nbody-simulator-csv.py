@@ -36,6 +36,20 @@ z = df['z']
 fig = plt.figure(figsize=(20, 10))
 ax = plt.axes(projection='3d')
 
+# Set background color to black
+ax.set_facecolor('black')
+fig.patch.set_facecolor('black')
+
+# Set grid color to white
+ax.xaxis._axinfo['grid'].update(color='white')
+ax.yaxis._axinfo['grid'].update(color='white')
+ax.zaxis._axinfo['grid'].update(color='white')
+
+# Set the pane colors to black
+#ax.xaxis.set_pane_color((0, 0, 0, 1))
+#ax.yaxis.set_pane_color((0, 0, 0, 1))
+#ax.zaxis.set_pane_color((0, 0, 0, 1))
+
 # Identify the object with the greatest mass
 max_mass_index = df['m'].idxmax()
 max_mass_body = df.loc[max_mass_index, 'body_num']
@@ -72,9 +86,13 @@ ax.set_xlim([min_val, max_val])
 ax.set_ylim([min_val, max_val])
 ax.set_zlim([min_val, max_val])
 
-ax.set_xlabel('X axis')
-ax.set_ylabel('Y axis')
-ax.set_zlabel('Z axis')
+ax.set_xlabel('X axis', color='white')
+ax.set_ylabel('Y axis', color='white')
+ax.set_zlabel('Z axis', color='white')
+
+ax.tick_params(axis='x', colors='white')
+ax.tick_params(axis='y', colors='white')
+ax.tick_params(axis='z', colors='white')
 
 ax.view_init(elev=10., azim=45)
 plt.show()

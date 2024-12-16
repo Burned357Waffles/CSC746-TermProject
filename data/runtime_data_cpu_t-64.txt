@@ -278,3 +278,21 @@ Number of bodies: 2048
 Starting nbody calculation
  Elapsed time is : 9.84806 
 Histories were not recorded
+
+
+
+
+
+
+
+
+
+
+
+
+##############################
+Larger test run:
+Number of bodies: 16384
+Starting nbody calculation
+ Elapsed time is : 1837.8
+Histories were not recorded

@@ -1,0 +1,71 @@
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 256 0 1 10 32 8
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 9.4389 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 256 0 1 10 128 2
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 9.49551 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 256 0 1 10 256 1
+Number of bodies: 256
+Starting nbody calculation
+ Elapsed time is : 10.7511 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 512 0 1 10 32 16
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 18.656 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 512 0 1 10 128 4
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 18.8532 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 512 0 1 10 256 2
+Number of bodies: 512
+Starting nbody calculation
+ Elapsed time is : 21.4732 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 1024 0 1 10 32 32
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 37.1668 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 1024 0 1 10 128 8
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 37.4676 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 1024 0 1 10 256 4
+Number of bodies: 1024
+Starting nbody calculation
+ Elapsed time is : 43.0185 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 2048 0 1 10 32 64
+64Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 74.2 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 2048 0 1 10 128 16
+Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 74.7787 
+Histories were not recorded
+bwat746@nid001013:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 2048 0 1 10 256 8
+Number of bodies: 2048
+Starting nbody calculation
+ Elapsed time is : 85.5041 
+Histories were not recorded
+
+
+
+
+##############################
+Larger test run:
+bwat746@nid001040:/pscratch/sd/b/bwat746/CSC746-TermProject/build> ./nbody_gpu 16384 0 1 10 128 128
+Number of bodies: 16384
+Starting nbody calculation
+ Elapsed time is : 913.731 
+Histories were not recorded
