@@ -278,3 +278,103 @@ Number of bodies: 2048
 Starting nbody calculation
  Elapsed time is : 9.84806 
 Histories were not recorded
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bwat746@nid001024:/pscratch/sd/b/bwat746/CSC746-TermProject/build>  OMP_NUM_THREADS=64 ./nbody_cpu 16384 0 1 10
+Hello world, I'm thread 44 out of 64 total threads. 
+Hello world, I'm thread 6 out of 64 total threads. 
+Hello world, I'm thread 40 out of 64 total threads. 
+Hello world, I'm thread 3 out of 64 total threads. 
+Hello world, I'm thread 18 out of 64 total threads. 
+Hello world, I'm thread 43 out of 64 total threads. 
+Hello world, I'm thread 13 out of 64 total threads. 
+Hello world, I'm thread 1 out of 64 total threads. 
+Hello world, I'm thread 24 out of 64 total threads. 
+Hello world, I'm thread 9 out of 64 total threads. 
+Hello world, I'm thread 31 out of 64 total threads. 
+Hello world, I'm thread 29 out of 64 total threads. 
+Hello world, I'm thread 0 out of 64 total threads. 
+Hello world, I'm thread 48 out of 64 total threads. 
+Hello world, I'm thread 5 out of 64 total threads. 
+Hello world, I'm thread 26 out of 64 total threads. 
+Hello world, I'm thread 17 out of 64 total threads. 
+Hello world, I'm thread 36 out of 64 total threads. 
+Hello world, I'm thread 32 out of 64 total threads. 
+Hello world, I'm thread 45 out of 64 total threads. 
+Hello world, I'm thread 39 out of 64 total threads. 
+Hello world, I'm thread 61 out of 64 total threads. 
+Hello world, I'm thread 2 out of 64 total threads. 
+Hello world, I'm thread 46 out of 64 total threads. 
+Hello world, I'm thread 59 out of 64 total threads. 
+Hello world, I'm thread 30 out of 64 total threads. 
+Hello world, I'm thread 34 out of 64 total threads. 
+Hello world, I'm thread 8 out of 64 total threads. 
+Hello world, I'm thread 22 out of 64 total threads. 
+Hello world, I'm thread 57 out of 64 total threads. 
+Hello world, I'm thread 25 out of 64 total threads. 
+Hello world, I'm thread 4 out of 64 total threads. 
+Hello world, I'm thread 62 out of 64 total threads. 
+Hello world, I'm thread 21 out of 64 total threads. 
+Hello world, I'm thread 60 out of 64 total threads. 
+Hello world, I'm thread 14 out of 64 total threads. 
+Hello world, I'm thread 52 out of 64 total threads. 
+Hello world, I'm thread 11 out of 64 total threads. 
+Hello world, I'm thread 35 out of 64 total threads. 
+Hello world, I'm thread 50 out of 64 total threads. 
+Hello world, I'm thread 56 out of 64 total threads. 
+Hello world, I'm thread 58 out of 64 total threads. 
+Hello world, I'm thread 53 out of 64 total threads. 
+Hello world, I'm thread 10 out of 64 total threads. 
+Hello world, I'm thread 27 out of 64 total threads. 
+Hello world, I'm thread 42 out of 64 total threads. 
+Hello world, I'm thread 49 out of 64 total threads. 
+Hello world, I'm thread 15 out of 64 total threads. 
+Hello world, I'm thread 12 out of 64 total threads. 
+Hello world, I'm thread 23 out of 64 total threads. 
+Hello world, I'm thread 37 out of 64 total threads. 
+Hello world, I'm thread 20 out of 64 total threads. 
+Hello world, I'm thread 55 out of 64 total threads. 
+Hello world, I'm thread 51 out of 64 total threads. 
+Hello world, I'm thread 54 out of 64 total threads. 
+Hello world, I'm thread 33 out of 64 total threads. 
+Hello world, I'm thread 16 out of 64 total threads. 
+Hello world, I'm thread 38 out of 64 total threads. 
+Hello world, I'm thread 7 out of 64 total threads. 
+Hello world, I'm thread 19 out of 64 total threads. 
+Hello world, I'm thread 28 out of 64 total threads. 
+Hello world, I'm thread 41 out of 64 total threads. 
+Hello world, I'm thread 63 out of 64 total threads. 
+Hello world, I'm thread 47 out of 64 total threads. 
+Number of bodies: 16384
+Starting nbody calculation
+ Elapsed time is : 1837.8 
+Histories were not recorded

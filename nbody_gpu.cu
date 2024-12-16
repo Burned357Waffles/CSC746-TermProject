@@ -60,43 +60,37 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
-__device__ void compute_forces(Body* bodies, double* forces, int N)
+__device__ void compute_forces(Body* bodies, double* forces, int N, int i, int j)
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
-   if (i >= N) return;
+   if (i >= N || j >= N || i == j) return;
 
-   double total_force[DIM] = {0.0, 0.0, 0.0};
-
-   for(int j = 0; j < N; j++)
-   {
-      if(i == j)
-         continue;
-
-      double dx[DIM] = {0.0, 0.0, 0.0};
-      double r = 0.0;
-      double r_norm = 0.0;
-
-      for (int idx = 0; idx < DIM; idx++)
-      {
-         dx[idx] = bodies[j].position[idx] - bodies[i].position[idx];
-         r += dx[idx] * dx[idx];
-      }
-
-      r_norm = sqrt(r);
-      if (r_norm == 0.0)
-         continue;
-
-      for (int idx = 0; idx < DIM; idx++)
-      {
-         double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
-         total_force[idx] += f;
-      }
-   }
+   double dx[DIM] = {0.0, 0.0, 0.0};
+   double r = 0.0;
+   double r_norm = 0.0;
 
    for (int idx = 0; idx < DIM; idx++)
    {
-      forces[i * DIM + idx] = total_force[idx];
+      dx[idx] = bodies[j].position[idx] - bodies[i].position[idx]; // FLOPS: 1 * 3 = 3
+      r += dx[idx] * dx[idx]; // FLOPS: 2 * 3 = 6
    }
+
+   r_norm = sqrt(r); // FLOPS: 1
+   if (r_norm == 0.0)
+      return;
+
+   for (int idx = 0; idx < DIM; idx++)
+   {
+      double f = (G * bodies[i].mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm); // FLOPS: 6 * 3 = 18
+      atomicAdd(&forces[i * DIM + idx], f); // FLOPS: 1 * 3 = 3
+   }
+}
+
+__global__ void compute_forces_kernel(Body* bodies, double* forces, int N)
+{
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+   compute_forces(bodies, forces, N, i, j);
 }
 
 __device__ void 
@@ -107,9 +101,10 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
 
    for (int idx = 0; idx < DIM; idx++)
    {
-      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
-      bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+      bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt; // FLOPS: 3 * 3 = 9
+      bodies[i].position[idx] += bodies[i].velocity[idx] * dt; // FLOPS: 2 * 3 = 6
    }
+   // FLOPS: 9 + 6 = 15
 
    if (record_histories)   
    {
@@ -139,9 +134,13 @@ do_nBody_calculation(Body* bodies, double* forces, const int N, const int timest
 
       __syncthreads();
 
-      compute_forces(bodies, forces, N);
+      dim3 threadsPerBlock(16, 16);
+      dim3 numBlocks((N + threadsPerBlock.x - 1) / threadsPerBlock.x, (N + threadsPerBlock.y - 1) / threadsPerBlock.y);
+      compute_forces_kernel<<<numBlocks, threadsPerBlock>>>(bodies, forces, N);
+      cudaDeviceSynchronize();
 
-      update_bodies(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      update_bodies<<<(N + threadsPerBlock.x - 1) / threadsPerBlock.x, threadsPerBlock.x>>>(bodies, forces, timestep, N, record_histories, history_index, velocity_history, position_history);
+      cudaDeviceSynchronize();
 
       history_index++;
    }

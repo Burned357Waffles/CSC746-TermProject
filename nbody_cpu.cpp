@@ -67,19 +67,20 @@ compute_forces(Body* bodies, Body i, int N, double* total_force)
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         dx[idx] = bodies[j].position[idx] - i.position[idx];
-         r += dx[idx] * dx[idx];
+         dx[idx] = bodies[j].position[idx] - i.position[idx]; // FLOPS: 1 * 3 = 3
+         r += dx[idx] * dx[idx]; // FLOPS: 2 * 3 = 6
       }
 
-      r_norm = sqrt(r);
+      r_norm = sqrt(r); // FLOPS: 1
       if (r_norm == 0.0)
          continue;
 
       for (int idx = 0; idx < DIM; idx++)
       {
-         double f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm);
-         total_force[idx] += f;
+         double f = (G * i.mass * bodies[j].mass * dx[idx]) / (r_norm * r_norm * r_norm); // FLOPS: 6 * 3 = 18
+         total_force[idx] += f; // FLOPS: 1 * 3 = 3
       }
+      // Total FLOPS: 3 + 6 + 1 + 18 + 3 = 31
    }
 }
 
@@ -91,9 +92,10 @@ update_bodies(Body* bodies, const double* forces, const double dt, const int N, 
    {
       for (int idx = 0; idx < DIM; idx++)
       {
-         bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt;
-         bodies[i].position[idx] += bodies[i].velocity[idx] * dt;
+         bodies[i].velocity[idx] += forces[i * DIM + idx] / bodies[i].mass * dt; // FLOPS: 3 * 3 = 9
+         bodies[i].position[idx] += bodies[i].velocity[idx] * dt; // FLOPS: 2 * 3 = 6
       }
+      // Total FLOPS: 9 + 6 = 15
 
       if (record_histories)
       {
